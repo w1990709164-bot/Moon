@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>小手机</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+<div class="wrap"><div class="shell"><div class="island"></div><div class="screen">
+
+<!-- 锁屏 -->
+<transition name="fade">
+<div class="lockscreen" v-if="pg==='lock'" @click="unlock">
+  <div class="wall" :style="wallSt"></div><div class="wall-ov"></div>
+  <div class="sb light lk-sb"><span>{{ T }}</span><div class="sb-r"><div class="sig"><i></i><i></i><i></i><i></i></div><span style="font-size:10px">▲</span><div class="bat"><div class="bat-f"></div></div></div></div>
+  <div class="lk-body">
+    <div class="lk-time">{{ T }}</div><div class="lk-date">{{ D }}</div>
+    <div class="lk-notif" v-if="chars.length>0">
+      <div class="lk-ni"><img v-if="chars[0].avatarImg" :src="chars[0].avatarImg" style="width:22px;height:22px;border-radius:50%;object-fit:cover"><span v-else>{{ chars[0].emoji||'🌿' }}</span></div>
+      <div><div class="lk-na">{{ chars[0].name }}</div><div class="lk-nm">{{ lastMsg(chars[0].id) }}</div></div>
+    </div>
+  </div>
+  <div class="lk-foot">
+    <div class="lk-bar" @click.stop="unlock"><div class="lk-thumb">🔓</div><div class="lk-txt">滑动解锁</div></div>
+    <div class="lk-hint">tap to unlock</div>
+  </div>
+</div>
+</transition>
+
+<!-- 桌面 -->
+<transition name="fade">
+<div class="home" v-if="pg==='home'">
+  <div class="wall" :style="wallSt"></div><div class="home-ov"></div>
+  <div class="sb light home-sb"><span>{{ T }}</span><div class="sb-r"><div class="sig"><i></i><i></i><i></i><i></i></div><span style="font-size:10px">▲</span><div class="bat"><div class="bat-f"></div></div></div></div>
+  <div class="home-body">
+<div class="card music-card" @click="go('music')">
+      <div class="m-disc" :style="musicPlaying?'background:rgba(80,110,50,.5)':''">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/></svg>
+      </div>
+      <div class="m-info">
+        <div class="m-ttl">{{ musicCurrent?musicCurrent.name:'点击添加音乐' }}</div>
+        <div class="m-sub">{{ musicCurrent?musicCurrent.artist:'与角色一起听歌' }}</div>
+      </div>
+      <div class="m-btns">
+        <svg viewBox="0 0 24 24" @click.stop="musicPrev" style="cursor:pointer"><path d="M19 20L9 12l10-8v16z"/><line x1="5" y1="4" x2="5" y2="20"/></svg>
+        <svg viewBox="0 0 24 24" @click.stop="musicTogglePlay" style="cursor:pointer"><polygon v-if="!musicPlaying" points="5,3 19,12 5,21"/><g v-else><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></g></svg>
+        <svg viewBox="0 0 24 24" @click.stop="musicNext" style="cursor:pointer"><path d="M5 4l10 8-10 8V4z"/><line x1="19" y1="4" x2="19" y2="20"/></svg>
+      </div>
+    </div>
+    <div class="tw-row">
+      <div class="time-card"><div class="time-big">{{ T }}</div><div class="time-date">{{ D }}</div></div>
+      <div class="weather-card" @click="showSt=true"><div class="w-top"><svg viewBox="0 0 24 24"><path :d="weatherIcon"/></svg><div class="w-temp">{{ weatherTemp }}</div></div><div class="w-desc">{{ weatherDesc }}</div></div>
+    </div>
+    <div class="card cal-card" @click="go('calendar')">
+      <div class="cal-h"><div class="cal-m">{{ calM }}</div><div class="cal-badge">{{ todayN }} 日</div></div>
+      <div class="cal-week">
+        <div class="cal-lbl" v-for="w in ['日','一','二','三','四','五','六']" :key="w">{{ w }}</div>
+        <div v-for="d in weekDays" :key="d.date" class="cal-d" :class="{today:d.isToday}">{{ d.date }}</div>
+      </div>
+    </div>
+    <div class="icon-row">
+      <div class="app-card p" @click="go('memorylib')"><div class="ic-wrap"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 4-3 6-3 9H8c0-3-3-5-3-9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/><circle cx="14" cy="10" r="1.2" fill="rgba(90,110,74,.45)" stroke="none"/></svg></div><div class="ic-lbl">记忆</div></div>
+      <div class="app-card m" @click="go('door')"><div class="ic-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M9 3v18M14 8.5h3.5M14 12h3.5M14 15.5h3.5"/><circle cx="6.5" cy="12" r="1.5" fill="rgba(255,255,255,.5)" stroke="none"/></svg></div><div class="ic-lbl">门</div></div>
+      <div class="app-card p" @click="go('forum')"><div class="ic-wrap"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="12.5" y2="14"/></svg></div><div class="ic-lbl">论坛</div></div>
+      <div class="app-card d" @click="go('invasion')"><div class="ic-wrap"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2.5"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/><circle cx="16.5" cy="18.5" r="3.5" stroke-width="1.3"/><line x1="19" y1="21" x2="21" y2="23"/></svg></div><div class="ic-lbl">入侵</div></div>
+    </div>
+    <div class="icon-row">
+      <div class="app-card p" @click="go('mailbox')"><div class="ic-wrap"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div><div class="ic-lbl">匿名信箱</div></div>
+      <div class="app-card m" @click="go('blindbox')"><div class="ic-wrap"><svg viewBox="0 0 24 24"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div><div class="ic-lbl">每日盲盒</div></div>
+      <div class="app-card" style="opacity:0;pointer-events:none"></div>
+      <div class="app-card" style="opacity:0;pointer-events:none"></div>
+    </div>
+  </div>
+  <div class="home-dock">
+    <div class="dock-ic sub" @click="showSt=true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M2 12h2M20 12h2M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M12 2v2M12 20v2"/></svg><span class="d-lbl">设置</span></div>
+    <div class="dock-ic main" style="position:relative" @click="go('wechat')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="d-lbl">Chat</span><div class="d-badge" v-if="totalUnread>0">{{ totalUnread }}</div></div>
+    <div class="dock-ic sub" @click="go('worldbook')"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="13" y2="12"/></svg><span class="d-lbl">世界书</span></div>
+  </div>
+</div>
+</transition>
+
+<!-- 消息列表 -->
+<transition name="slide">
+<div class="wv" v-if="pg==='wechat'">
+  <div class="sb dark"><span>{{ T }}</span><div class="sb-r"><div class="sig"><i></i><i></i><i></i><i></i></div><span style="font-size:10px">▲</span><div class="bat"><div class="bat-f" style="background:var(--sage)"></div></div></div></div>
+  <div class="wv-top"><button @click="pg='home'" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;color:var(--sage-dark);font-size:13px;margin-bottom:8px;padding:0"><svg width="10" height="14" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2L2 8l6 6"/></svg>桌面</button><div class="wv-search">
+<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>搜索</span></div></div>
+  <div class="wv-tabs-top">
+    <div class="wv-tab-pill on">全部</div>
+    <div class="wv-tab-pill off">角色</div>
+    <div class="wv-tab-pill off">群聊</div>
+  </div>
+  <div class="cl">
+    <div class="ci" v-for="c in chars" :key="c.id" @click="openChat(c)">
+      <div class="ci-dot" v-if="c.unread>0"></div>
+      <div class="ci-av"><img v-if="c.avatarImg" :src="c.avatarImg"><span v-else>{{ c.emoji||'🌿' }}</span></div>
+      <div class="ci-info"><div class="ci-name">{{ c.name }}</div><div class="ci-prev">{{ lastMsg(c.id) }}</div></div>
+      <div class="ci-meta"><div class="ci-time">{{ lastTime(c.id) }}</div><div class="ci-bdg" v-if="c.unread>0">{{ c.unread }}</div></div>
+    </div>
+    <div class="empty-tip" v-if="chars.length===0">前往通讯录 → 新建角色<br><span style="font-size:11px;color:#d0ccc4">go to contacts to add a character</span></div>
+  </div>
+  <div class="wv-bottom">
+    <div class="wv-dock">
+      <div class="wt on"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>消息</span></div>
+      <div class="wt" @click="go('contacts')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>通讯录</span></div>
+      <div class="wt" @click="go('moments')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span>朋友圈</span></div>
+      <div class="wt" @click="go('profile')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>我</span></div>
+    </div>
+  </div>
+</div>
+</transition>
+
+<!-- 通讯录（含添加角色/群聊入口） -->
+<transition name="slide">
+<div class="contacts-view" v-if="pg==='contacts'">
+  <div class="sb dark"><span>{{ T }}</span><div class="sb-r"><div class="sig"><i></i><i></i><i></i><i></i></div><span style="font-size:10px">▲</span><div class="bat"><div class="bat-f" style="background:var(--sage)"></div></div></div></div>
+  <div class="contacts-nav">
+    <button @click="pg='wechat'" style="position:absolute;left:14px;background:none;border:none;cursor:pointer;display:flex;align-items:center">
+      <svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="var(--sage)" stroke-width="2" stroke-linecap="round"><path d="M8 2L2 8l6 6"/></svg>
+    </button>
+    通讯录
+  </div>
+  <div class="contacts-actions">
+    <div class="contact-action-btn" @click="showAdd=true">
+      <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      <div class="contact-action-label">新建角色联系人</div>
+    </div>
+    <div class="contact-action-btn" @click="go('groupchat')">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <div class="contact-action-label">发起群聊</div>
+    </div>
+  </div>
+  <div class="contacts-list-title">我的角色 ({{ chars.length }})</div>
+  <div class="contacts-list">
+    <div class="ci" v-for="c in chars" :key="c.id" @click="openChat(c)">
+      <div class="ci-av"><img v-if="c.avatarImg" :src="c.avatarImg"><span v-else>{{ c.emoji||'🌿' }}</span></div>
+      <div class="ci-info"><div class="ci-name">{{ c.name }}</div><div class="ci-prev" style="color:var(--text-soft)">{{ c.relation||c.identity||'角色' }}</div></div>
+    </div>
+    <div class="empty-tip" v-if="chars.length===0">还没有角色<br><span style="font-size:12px;color:#ccc">点上方「新建角色联系人」开始</span></div>
+  </div>
+</div>
+</transition>
+
+<!-- 聊天详情 -->
+<transition name="slide">
+<div class="cd" v-if="pg==='chat'" @click="showEmojiPanel=false;msgActionMenu=null"
+  @touchstart.passive="swipeStart" @touchend.passive="swipeEnd">
+  <div class="sb dark"><span>{{ T }}</span><div class="sb-r"><div class="sig"><i></i><i></i><i></i><i></i></div><span style="font-size:10px">▲</span><div class="bat"><div class="bat-f" style="background:var(--sage)"></div></div></div></div>
+  <div class="cd-nav">
+    <button class="cd-back" @click="pg='wechat'"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+    <div class="cd-av" @click="openEditChar(activeChar)"><img v-if="activeChar&&activeChar.avatarImg" :src="activeChar.avatarImg"><span v-else>{{ activeChar&&(activeChar.emoji||'🌿') }}</span></div>
+    <div class="cd-name">{{ activeChar&&activeChar.name }}</div>
+    <button class="cd-menu" @click.stop="showSidebar=true"><div class="cd-menu-line"></div><div class="cd-menu-line"></div><div class="cd-menu-line"></div></button>
+  </div>
+  <div class="msgs" ref="msgBox" @click="showEmojiPanel=false">
+    <template v-for="(m,i) in curMsgs" :key="i">
+      <div v-if="m.retracted" :class="['mr',m.role==='user'?'me':'other']">
+        <div class="mav" v-if="m.role!=='user'"><img v-if="activeChar&&activeChar.avatarImg" :src="activeChar.avatarImg"><span v-else>{{ activeChar&&(activeChar.emoji||'🌿') }}</span></div>
+        <div class="msg-content"><div class="msg-retracted">{{ m.role==='user'?'你撤回了一条消息':(activeChar&&activeChar.name||'对方')+'撤回了一条消息' }}</div></div>
+      </div>
+      <template v-else-if="m.role==='assistant'&&m.bubbles&&m.bubbles.length>0">
+        <div class="mr other" v-for="(bub,bi) in m.bubbles" :key="'b'+i+'_'+bi">
+          <div class="mav" v-if="bi===0" @click="triggerWhisper(null,m.whisper)"><img v-if="activeChar&&activeChar.avatarImg" :src="activeChar.avatarImg"><span v-else>{{ activeChar&&(activeChar.emoji||'🌿') }}</span></div>
+          <div class="mav" v-else style="opacity:0;pointer-events:none"><img v-if="activeChar&&activeChar.avatarImg" :src="activeChar.avatarImg"><span v-else>🌿</span></div>
+          <div class="msg-content">
+            <div class="bub" @touchstart.passive="msgLongpressStart($event,m,i)" @touchend.passive="msgLongpressEnd" @touchmove.passive="msgLongpressEnd" @contextmenu.prevent="msgShowMenu($event,m,i)">{{ bub }}</div>
+            <div v-if="m.translations&&m.translations[bi]&&charSettings.translateOn" class="trans-row" style="margin-top:2px">
+              <button class="trans-btn" @click.stop="toggleTrans(m)">{{ m.showTrans?'收起':'查看翻译' }}</button>
+              <div v-if="m.showTrans" class="trans-text">{{ m.translations[bi] }}</div>
+            </div>
+            <div class="msg-meta-row-other" v-if="bi===m.bubbles.length-1&&isLastInGroup(i)">
+              <span class="msg-time-other">{{ formatMsgTime(m.ts) }}</span>
+            </div>
+          </div>
+        </div>
+      </template>
+      <!-- 用户消息：头像在右 -->
+      <div v-else-if="m.role==='user'" class="mr me">
+        <div class="msg-content">
+          <div v-if="m.type==='image'" class="msg-img" @click="previewImg=m.content"><img :src="m.content"></div>
+          <div v-else-if="m.type==='sticker'" class="msg-img" style="max-width:120px" @click="previewImg=m.content"><img :src="m.content" style="border-radius:8px"></div>
+          <div v-else class="bub" @touchstart.passive="msgLongpressStart($event,m,i)" @touchend.passive="msgLongpressEnd" @touchmove.passive="msgLongpressEnd" @contextmenu.prevent="msgShowMenu($event,m,i)">{{ m.content }}</div>
+          <div class="msg-meta-row">
+            <span class="msg-time-inline" v-if="isLastInGroup(i)">{{ formatMsgTime(m.ts) }}</span>
+            <span class="msg-tick" :class="m.read?'read':'sent'">{{ m.read?'✓✓':'✓' }}</span>
+          </div>
+        </div>
+        <div class="mav"><img v-if="userProfile.avatarImg" :src="userProfile.avatarImg"><span v-else>🧑</span></div>
+      </div>
+      <!-- 角色消息（单条，非bubbles） -->
+      <div v-else class="mr other">
+        <div class="mav" @click="triggerWhisper(null,m.whisper)"><img v-if="activeChar&&activeChar.avatarImg" :src="activeChar.avatarImg"><span v-else>{{ activeChar&&(activeChar.emoji||'🌿') }}</span></div>
+        <div class="msg-content">
+          <div v-if="m.type==='image'" class="msg-img" @click="previewImg=m.content"><img :src="m.content"></div>
+          <div v-else-if="m.type==='sticker'" class="msg-img" style="max-width:120px" @click="previewImg=m.content"><img :src="m.content" style="border-radius:8px"></div>
+          <div v-else class="bub" @touchstart.passive="msgLongpressStart($event,m,i)" @touchend.passive="msgLongpressEnd" @touchmove.passive="msgLongpressEnd" @contextmenu.prevent="msgShowMenu($event,m,i)">{{ m.content }}</div>
+          <div v-if="charSettings.translateOn" class="trans-row">
+            <button class="trans-btn" @click.stop="toggleTrans(m)">{{ m.showTrans?'收起':'查看翻译' }}</button>
+          </div>
+          <div v-if="m.showTrans&&m.translation" class="trans-text">{{ m.translation }}</div>
+          <div class="msg-meta-row-other" v-if="isLastInGroup(i)">
+            <span class="msg-time-other">{{ formatMsgTime(m.ts) }}</span>
+          </div>
+        </div>
+      </div>
+    </template>
+    <div class="mr other" v-if="typing">
+      <div class="mav" @click="triggerWhisper()"><img v-if="activeChar&&activeChar.avatarImg" :src="activeChar.avatarImg"><span v-else>{{ activeChar&&(activeChar.emoji||'🌿') }}</span></div>
+      <div class="msg-content"><div class="typ"><div class="dots"><s></s><s></s><s></s></div></div></div>
+    </div>
+    <div ref="anchor"></div>
+  </div>
+
+  <!-- 倒查手机：底部警报弹出 -->
+  <div class="rcheck-alert" v-if="rcheckAlert" @click.stop>
+    <div class="rcheck-title">设备入侵警报</div>
+    <div class="rcheck-msg">{{ rcheckChar&&rcheckChar.name }} 正在尝试访问你的手机，是否拦截？</div>
+    <div class="rcheck-btns">
+      <button class="rcheck-btn block" @click="rcheckBlock">拦截</button>
+      <button class="rcheck-btn allow" @click="rcheckAllow">允许</button>
+    </div>
+  </div>
+
+  <!-- 倒查手机进行中：覆盖wechat/chat页面，模拟被控制 -->
+  <div class="rcheck-overlay" v-if="rcheckActive" @click.stop>
+    <div class="rcheck-bar"></div>
+    <div class="rcheck-corner">
+      <div class="rcheck-corner-av">
+        <img v-if="rcheckChar&&rcheckChar.avatarImg" :src="rcheckChar.avatarImg">
+        <span v-else>{{ rcheckChar&&rcheckChar.emoji||'👁' }}</span>
+      </div>
+      <div class="rcheck-corner-whisper">{{ rcheckWhisper||'正在翻看…' }}</div>
+      <div class="rcheck-corner-pulse"></div>
+    </div>
+    <button class="rcheck-grab-btn" @click.stop="rcheckGrabBack">抢回手机</button>
+  </div>
+
+  <div v-if="msgActionMenu" class="msg-action-menu" :style="{position:'fixed',top:msgActionMenu.y+'px',left:msgActionMenu.x+'px'}" @click.stop>
+    <div class="msg-action-item" @click="msgRetract(msgActionMenu.msg,msgActionMenu.idx)"><svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>撤回</div>
+    <div class="msg-action-item danger" @click="msgDelete(msgActionMenu.idx)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>删除（清除记忆）</div>
+    <div class="msg-action-item" @click="msgActionMenu=null"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>取消</div>
+  </div>
+
+  <div class="ibar" @click.stop>
+    <div class="ibar-row">
+      <button class="ibar-btn" @click.stop="showEmojiPanel=!showEmojiPanel">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+      </button>
+      <div class="ibar-input-wrap" contenteditable="true" ref="inputEl" data-placeholder="说点什么…"
+        @input="onInput" @keydown.enter.exact.prevent="send"
+        @focus="onInputFocus" @blur="onInputBlur"></div>
+      <button class="ibar-btn" @click.stop="$refs.imgInput.click()">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <input type="file" accept="image/*" ref="imgInput" style="display:none" @change="sendImage">
+      </button>
+      <button class="ibar-send" :class="hasInput?'':'ai-mode'" :disabled="typing" @click.stop="hasInput?send():triggerAiReply()">
+        <svg v-if="hasInput" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        <svg v-else viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="emoji-panel" v-if="showEmojiPanel" @click.stop>
+    <div class="emoji-panel-tabs">
+      <div class="emoji-panel-tab" :class="{on:emojiTab==='emoji'}" @click="emojiTab='emoji'">表情</div>
+      <div class="emoji-panel-tab" :class="{on:emojiTab==='sticker'}" @click="emojiTab='sticker'">表情包</div>
+    </div>
+    <div class="emoji-panel-body">
+      <div class="emoji-grid" v-if="emojiTab==='emoji'">
+        <div class="emoji-item" v-for="e in emojis" :key="e" @click="insertEmoji(e)">{{ e }}</div>
+      </div>
+      <div v-else>
+        <div class="sticker-grid">
+          <div class="sticker-item" v-for="(s,si) in stickerList" :key="si" @click="sendSticker(s)">
+            <img :src="s" @error="$event.target.style.display='none'">
+          </div>
+          <div class="sticker-add" @click="showStickerMgmt=true">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>添加</span>
+          </div>
+        </div>
+        <div class="sticker-mgmt-btn" @click="showStickerMgmt=true">管理表情包</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 表情包管理 -->
+  <div class="sticker-mgmt-mask" v-if="showStickerMgmt" @click.self="showStickerMgmt=false">
+    <div class="sticker-mgmt-sheet" @click.stop>
+      <div class="sticker-mgmt-handle"></div>
+      <div class="sticker-mgmt-title">管理表情包<button class="sticker-mgmt-close" @click="showStickerMgmt=false">×</button></div>
+      <div class="sticker-mgmt-body">
+        <div class="sticker-mgmt-add-row">
+          <input class="sticker-mgmt-input" v-model="stickerUrlInput" placeholder="粘贴图片URL或上传" @keydown.enter="addStickerUrl">
+          <button class="sticker-mgmt-add-btn" @click="addStickerUrl">添加</button>
+        </div>
+        <div style="margin-bottom:8px">
+          <label style="font-size:12px;color:var(--text-soft);cursor:pointer;display:flex;align-items:center;gap:6px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            从相册上传图片
+            <input type="file" accept="image/*" style="display:none" @change="addStickerFile">
+          </label>
+        </div>
+        <div class="sticker-mgmt-list">
+          <div class="sticker-mgmt-item" v-for="(s,si) in stickerList" :key="si">
+            <img :src="s">
+            <button class="sticker-mgmt-del" @click="removeSticker(si)">×</button>
+          </div>
+        </div>
+        <div style="text-align:center;padding:20px;font-size:12px;color:#ccc" v-if="stickerList.length===0">还没有表情包，添加URL或上传图片</div>
+      </div>
+    </div>
+  </div>
+  
+
+  <div class="emoji-panel" v-if="showEmojiPanel" @click.stop>
+    <div class="emoji-grid">
+      <div class="emoji-item" v-for="e in emojis" :key="e" @click="insertEmoji(e)">{{ e }}</div>
+    </div>
+  </div>
+
+  <!-- 心声遮罩（全屏弹出） -->
+  <div class="whisper-mask" v-if="showWhisperMask" @click="showWhisperMask=false">
+    <div class="whisper-card">
+      <div class="whisper-header">
+        <div class="whisper-av">
+          <img v-if="activeChar&&activeChar.avatarImg" :src="activeChar.avatarImg">
+          <span v-else>{{ activeChar&&(activeChar.emoji||'🌿') }}</span>
+        </div>
+        <div>
+          <div class="whisper-title">窥听心声</div>
+          <div class="whisper-name">{{ whisperCharName||activeChar&&activeChar.name }}</div>
+        </div>
+      </div>
+      <div v-if="whisperLoading" class="whisper-loading"><div class="dots"><s></s><s></s><s></s></div><span>正在感应…</span></div>
+      <div v-else class="whisper-text">{{ whisperText }}</div>
+    </div>
+    <div class="whisper-hint">点击任意处关闭</div>
+  </div>
+
+  <!-- 侧边栏 -->
+  <div class="sidebar-mask" v-if="showSidebar">
+    <div class="sidebar-bg" @click="showSidebar=false"></div>
+    <div class="sidebar" @click.stop>
+      <div class="sb-header">
+        <div class="sb-char-row">
+          <div class="sb-char-av"><img v-if="activeChar&&activeChar.avatarImg" :src="activeChar.avatarImg"><span v-else>{{ activeChar&&(activeChar.emoji||'🌿') }}</span></div>
+          <div><div class="sb-char-name">{{ activeChar&&activeChar.name }}</div><div class="sb-char-sub">{{ activeChar&&(activeChar.relation||activeChar.identity||'角色') }}</div></div>
+        </div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-title">对话设置</div>
+        <div class="sb-row">
+          <div class="sb-row-label">上下文深度</div>
+          <select class="sb-select" v-model="charSettings.contextDepth">
+            <option value="10">10条</option><option value="20">20条</option><option value="40">40条</option><option value="0">全部</option>
+          </select>
+        </div>
+        <div class="sb-row">
+          <div class="sb-row-label">角色母语</div>
+          <select class="sb-select" v-model="charSettings.language">
+            <option value="zh">中文</option><option value="en">英语</option><option value="ja">日语</option><option value="ko">韩语</option><option value="de">德语</option>
+          </select>
+        </div>
+        <div class="sb-row">
+          <div class="sb-row-label">开启翻译</div>
+          <div class="toggle" :class="charSettings.translateOn?'on':'off'" @click="charSettings.translateOn=!charSettings.translateOn"><div class="toggle-dot"></div></div>
+        </div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-title">语音设置</div>
+      <div class="sb-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <div class="sb-row-label">音色 ID</div>
+          <input class="sb-select" style="width:100%;font-size:13px" v-model="charSettings.voiceId" placeholder="填入 MiniMax 音色名，如 male-qn-jingying"/>
+        </div>
+
+        <div class="sb-row">
+          <div class="sb-row-label">语音概率 %</div>
+          <input type="number" class="sb-select" v-model="charSettings.voiceProb" min="0" max="100" style="width:58px" placeholder="0">
+        </div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-title">角色管理</div>
+        <div class="sb-row" @click="openEditChar"><div class="sb-row-label">编辑角色信息</div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+        <div class="sb-row" @click="go('memorylib');showSidebar=false"><div class="sb-row-label">查看记忆库</div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+        <div class="sb-row"><div class="sb-danger" @click="deleteChar">删除角色</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 图片全屏预览 -->
+  <div class="img-preview-mask" v-if="previewImg" @click="previewImg=null"><img :src="previewImg"></div>
+</div>
+</transition>
+
+<!-- ════ 记忆库 ════ -->
+<transition name="slide">
+<div class="mem-view" v-if="pg==='memorylib'">
+  <div class="sb dark"><span>{{ T }}</span><div class="sb-r"><div class="sig"><i></i><i></i><i></i><i></i></div><span style="font-size:10px">▲</span><div class="bat"><div class="bat-f" style="background:var(--sage)"></div></div></div></div>
+  <div style="height:44px;background:var(--nav);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;flex-shrink:0">
+    <button @click="pg='home'" style="background:none;border:none;cursor:pointer;color:var(--sage);display:flex;align-items:center;margin-right:8px"><svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2L2 8l6 6"/></svg></button>
+    <div style="font-size:16px;font-weight:500;color:var(--text);flex:1;text-align:center;letter-spacing:.5px">记忆库</div>
+    <div style="width:32px"></div>
+  </div>
+  <!-- 角色tab -->
+  <div class="mem-char-tabs">
+    <div v-for="c in chars" :key="c.id"
+      class="mem-char-tab" :class="memoryChar===c.id?'on':'off'"
+      @click="memoryChar=c.id">
+      {{ c.name }}
+    </div>
+    <div v-if="chars.length===0" style="font-size:13px;color:#ccc;padding:6px">还没有角色</div>
+  </div>
+  <!-- 内容 -->
+  <div class="mem-body" v-if="memoryChar">
+    <div class="mem-toolbar">
+      <button class="mem-btn primary" :disabled="memorySummarizing" @click="summarizeMemory">
+        {{ memorySummarizing?'AI总结中…':'🧠 AI一键总结' }}
+      </button>
+      <button class="mem-btn secondary" @click="addMemoryTag">＋ 新建标签</button>
+      <button class="mem-btn secondary" @click="clearCharMemory" style="color:#e05555;border-color:#e05555">清除对话</button>
+    </div>
+    <div class="mem-tag-card" v-for="(tag,ti) in currentMemory" :key="ti">
+      <div class="mem-tag-head">
+        <div class="mem-tag-dot"></div>
+        <input class="mem-tag-label" v-model="tag.label" @change="saveMemoryLib">
+        <span class="mem-tag-add" @click="addMemoryItem(ti)">＋</span>
+        <span class="mem-tag-del" @click="deleteMemoryTag(ti)">删除</span>
+      </div>
+      <div class="mem-item" v-for="(item,ii) in tag.items" :key="ii">
+        <div class="mem-item-dot">·</div>
+        <textarea class="mem-item-text" v-model="item.text" rows="1"
+          @change="saveMemoryLib"
+          @input="e=>{e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px'}"></textarea>
+        <span class="mem-item-del" @click="deleteMemoryItem(ti,ii)">×</span>
+      </div>
+      <div v-if="tag.items.length===0" style="padding:10px 14px;font-size:12px;color:#ccc">暂无记录，点＋添加</div>
+    </div>
+    <div class="mem-empty" v-if="currentMemory.length===0">
+      还没有记忆<br>点「AI一键总结」自动提取<br>或点「新建标签」手动添加
+    </div>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:13px" v-if="!memoryChar&&chars.length>0">请选择角色</div>
+</div>
+</transition>
+
+<!-- ════ 朋友圈 ════ -->
+<transition name="slide">
+<div class="moments-view" v-if="pg==='moments'">
+  <div class="moments-header">
+    <div class="moments-bg" :style="{backgroundImage:'url('+momentsBg+')'}"></div>
+    <div class="moments-bg-ov"></div>
+    <button style="position:absolute;top:56px;left:14px;background:none;border:none;cursor:pointer;z-index:5" @click="pg='wechat'"><svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M8 2L2 8l6 6"/></svg></button>
+    <div style="position:absolute;top:52px;left:50%;transform:translateX(-50%);color:#fff;font-size:16px;font-weight:500;z-index:5">朋友圈</div>
+    <div class="moments-top-btns">
+      <div class="moments-refresh-btn" @click="generateMoments" :style="{opacity:momentGenerating?.5:1}">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      </div>
+      <button class="moments-camera" @click="showPostMoment=true">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </button>
+    </div>
+    <div class="moments-user-av" @click="go('profile')">
+      <img v-if="userProfile.avatarImg" :src="userProfile.avatarImg"><span v-else>🧑</span>
+    </div>
+  </div>
+  <div class="moments-list">
+    <div v-if="momentGenerating" class="moments-generating">
+      <div class="dots" style="justify-content:center;gap:6px;display:flex"><s style="background:var(--sage-mid);width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s infinite"></s><s style="background:var(--sage-mid);width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s .2s infinite"></s><s style="background:var(--sage-mid);width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s .4s infinite"></s></div>
+      <div style="margin-top:8px">正在生成动态…</div>
+    </div>
+    <div class="moment-item" v-for="m in allMoments" :key="m.id">
+      <div class="moment-av">
+        <img v-if="m.charId==='user'&&userProfile.avatarImg" :src="userProfile.avatarImg">
+        <img v-else-if="m.charId!=='user'&&getChar(m.charId)&&getChar(m.charId).avatarImg" :src="getChar(m.charId).avatarImg">
+        <span v-else>{{ m.charId==='user'?'🧑':(getChar(m.charId)&&(getChar(m.charId).emoji||'🌿')) }}</span>
+      </div>
+      <div class="moment-body">
+        <div class="moment-name">{{ m.charId==='user'?(userProfile.name||'我'):getCharName(m.charId) }}</div>
+        <div class="moment-text" v-if="m.text">{{ m.text }}</div>
+        <div class="moment-fake-img" v-if="m.fakeImg" @click="previewFake=m.fakeImg">
+          <div class="moment-fake-img-title">📷 {{ m.fakeImg.title }}</div>
+          <div class="moment-fake-img-sub">点击查看详情</div>
+        </div>
+        <div class="moment-real-img" v-if="m.realImg" @click="previewReal=m.realImg">
+          <img :src="m.realImg">
+        </div>
+        <div class="moment-meta">
+          <div class="moment-time">{{ m.time }}</div>
+          <div class="moment-actions">
+            <div class="moment-action" :class="{liked:m.userLiked}" @click="toggleLike(m)">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" :fill="m.userLiked?'currentColor':'none'"/></svg>
+              {{ m.likes.length }}
+            </div>
+            <div class="moment-action" @click="m.showCommentInput=!m.showCommentInput">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              {{ m.comments.length }}
+            </div>
+          </div>
+        </div>
+        <div class="moment-likes" v-if="m.likes.length>0">❤️ {{ m.likes.join('、') }}</div>
+        <div class="moment-comments" v-if="m.comments.length>0">
+          <div class="moment-comment" v-for="(c,ci) in m.comments" :key="ci">
+            <span class="moment-comment-name">{{ c.name }}：</span>{{ c.text }}
+          </div>
+        </div>
+        <div class="moment-comment-input" v-if="m.showCommentInput">
+          <input v-model="m.commentDraft" placeholder="说点什么…" @keydown.enter="submitComment(m)">
+          <button class="moment-comment-send" @click="submitComment(m)">发送</button>
+        </div>
+      </div>
+    </div>
+    <div class="moments-empty" v-if="allMoments.length===0&&!momentGenerating">
+      <div class="moments-empty-icon">🌿</div>
+      <div class="moments-empty-text">点右上角菱形刷新生成角色动态<br>点相机图标发布自己的动态</div>
+    </div>
+  </div>
+  <!-- 假图片预览 -->
+  <div class="fullscreen-preview" v-if="previewFake" @click="previewFake=null">
+    <div style="width:100%;max-width:320px;background:#111;border-radius:16px;padding:20px">
+      <div style="font-size:14px;color:rgba(255,255,255,.5);margin-bottom:8px;letter-spacing:.5px">📷 {{ previewFake.title }}</div>
+      <div style="font-size:15px;color:rgba(255,255,255,.9);line-height:1.8;font-weight:300">{{ previewFake.detail }}</div>
+    </div>
+    <div class="fullscreen-preview-hint">点击关闭</div>
+  </div>
+  <!-- 真图片预览 -->
+  <div class="fullscreen-preview" v-if="previewReal" @click="previewReal=null">
+    <img :src="previewReal">
+    <div class="fullscreen-preview-hint">点击关闭</div>
+  </div>
+</div>
+</transition>
+
+<!-- ════ 我的 ════ -->
+<transition name="slide">
+<div class="profile-view" v-if="pg==='profile'">
+  <div class="sb dark"><span>{{ T }}</span><div class="sb-r"><div class="sig"><i></i><i></i><i></i><i></i></div><span style="font-size:10px">▲</span><div class="bat"><div class="bat-f" style="background:var(--sage)"></div></div></div></div>
+  <div class="profile-header">
+    <button class="profile-back" @click="pg='wechat'"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+    <div class="profile-user-row">
+      <div class="profile-av" @click="$refs.profAvInput.click()">
+        <img v-if="userProfile.avatarImg" :src="userProfile.avatarImg"><span v-else>🧑</span>
+        <input type="file" accept="image/*" ref="profAvInput" style="display:none" @change="uploadProfileAv">
+      </div>
+      <div>
+        <div class="profile-name">{{ userProfile.name||'点击设置名字' }}</div>
+        <div class="profile-sign">{{ userProfile.sign||'点击编辑个人设定' }}</div>
+        <div class="profile-edit-link" @click="showEditProfile=true">编辑资料</div>
+      </div>
+    </div>
+  </div>
+  <div class="profile-body">
+    <div class="profile-section">
+      <div class="profile-section-title">最近动态</div>
+      <div style="padding:8px 0" v-if="userMoments.length===0"><div style="padding:8px 16px;font-size:13px;color:#ccc">还没有动态，去朋友圈发布吧</div></div>
+      <div class="profile-moment-preview" v-for="m in userMoments.slice(0,3)" :key="m.id" @click="go('moments')">
+        <div class="profile-moment-text">{{ m.text||'[图片]' }}</div>
+        <div class="profile-moment-time">{{ m.time }}</div>
+      </div>
+    </div>
+    <div class="profile-section">
+      <div class="profile-section-title">用户设定</div>
+      <div class="profile-row" @click="showEditProfile=true">
+        <div class="profile-row-label">名字</div>
+        <div class="profile-row-value">{{ userProfile.name||'未设置' }}</div>
+      </div>
+      <div class="profile-row" @click="showEditProfile=true">
+        <div class="profile-row-label">签名</div>
+        <div class="profile-row-value">{{ userProfile.sign||'未设置' }}</div>
+      </div>
+      <div class="profile-row" @click="showEditProfile=true">
+        <div class="profile-row-label">详细设定</div>
+        <div class="profile-row-value">{{ userProfile.setting?userProfile.setting.slice(0,18)+'…':'未设置' }}</div>
+      </div>
+    </div>
+    <div style="height:24px"></div>
+  </div>
+</div>
+</transition>
+
+<!-- 发动态弹窗 -->
+<div class="mask" v-if="showPostMoment" @click.self="showPostMoment=false">
+  <div class="sheet">
+    <div class="sh"></div><div class="stitle">发布动态</div>
+    <div class="sg">
+      <div class="sr"><div class="sl">说点什么…</div><textarea class="si" v-model="newMomentText" rows="4" style="resize:none" placeholder="分享此刻的心情…"></textarea></div>
+      <div class="sr">
+        <div class="sl">添加图片（可选）</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+          <div v-if="newMomentImg" style="width:60px;height:60px;border-radius:8px;overflow:hidden;flex-shrink:0"><img :src="newMomentImg" style="width:100%;height:100%;object-fit:cover"></div>
+          <div @click="$refs.momentImgInput.click()" style="width:60px;height:60px;border:2px dashed #ddd;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#ccc;font-size:24px">＋</div>
+          <input type="file" accept="image/*" ref="momentImgInput" style="display:none" @change="pickMomentImg">
+        </div>
+      </div>
+    </div>
+    <button class="mb ok" @click="postMoment">发布</button>
+    <button class="mb no" @click="showPostMoment=false">取消</button>
+  </div>
+</div>
+
+<!-- 编辑用户资料 -->
+<div class="mask" v-if="showEditProfile" @click.self="showEditProfile=false">
+  <div class="sheet">
+    <div class="sh"></div><div class="stitle">编辑资料</div>
+    <div class="sg">
+      <div class="sr"><div class="sl">名字</div><input class="si" v-model="editProfile.name" placeholder="你的名字"/></div>
+      <div class="sr"><div class="sl">签名</div><input class="si" v-model="editProfile.sign" placeholder="一句话介绍自己"/></div>
+    </div>
+    <div class="ssec">用户详细设定（注入所有对话）</div>
+    <div class="sg">
+      <div class="sr"><div class="sl">详细设定</div><textarea class="si" v-model="editProfile.setting" rows="6" style="resize:vertical" placeholder="描述你的性格、背景、爱好、与角色的关系背景…"></textarea></div>
+    </div>
+    <button class="mb ok" @click="saveProfile">保存</button>
+    <button class="mb no" @click="showEditProfile=false">取消</button>
+  </div>
+</div>
+
+<!-- ════ WIP占位 ════ -->
+<transition name="slide">
+<div class="wip" v-if="wipList.includes(pg)&&pg!=='memorylib'&&pg!=='moments'&&pg!=='profile'&&pg!=='music'&&pg!=='worldbook'&&pg!=='calendar'&&pg!=='forum'&&pg!=='door'&&pg!=='meet'&&pg!=='invasion'&&pg!=='blindbox'&&pg!=='mailbox'&&pg!=='groupchat'">
+  <div class="sb dark"><span>{{ T }}</span><div class="sb-r"><div class="sig"><i></i><i></i><i></i><i></i></div><span style="font-size:10px">▲</span><div class="bat"><div class="bat-f" style="background:var(--sage)"></div></div></div></div>
+  <div class="wip-nav"><button class="wip-back" @click="pg='home'"><svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2L2 8l6 6"/></svg></button><div class="wip-title">{{ wipI.name }}</div><div style="width:36px"></div></div>
+  <div class="wip-body"><div class="wip-e">{{ wipI.emoji }}</div><div class="wip-n">{{ wipI.name }}</div><div class="wip-d">{{ wipI.desc }}</div><div class="wip-tag">即将上线</div></div>
+</div>
+</transition>
+
+<!-- ════ 音乐 ════ -->
+<transition name="slide">
+<div class="music-view" v-if="pg==='music'">
+  <div class="music-bg-glow"></div>
+  <div class="music-nav">
+    <button class="music-back" @click="go('home')"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+    <div class="music-title-nav">一起听歌</div>
+    <button class="music-playlist-btn" @click="musicShowPlaylist=true">
+      <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="3" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
+    </button>
+  </div>
+
+  <!-- 唱片 -->
+  <div class="music-body">
+    <div class="music-disc-wrap">
+      <div class="music-disc" :class="{spin:musicPlaying}">
+        <div class="music-disc-inner">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="rgba(140,180,90,.4)" stroke="none"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 歌曲信息 -->
+    <div class="music-info">
+      <div class="music-song-name">{{ musicCurrent?musicCurrent.name:'未选择歌曲' }}</div>
+      <div class="music-song-artist">{{ musicCurrent?musicCurrent.artist:'搜索并添加歌曲' }}</div>
+    </div>
+
+    <!-- 角色选择 -->
+    <div class="music-char-select" style="margin-top:14px" v-if="chars.length>0">
+      <div class="music-cs-item" v-for="c in chars" :key="c.id"
+        :class="{on:musicActiveChar===c.id}"
+        @click="musicSelectChar(c.id)">
+        <div class="music-cs-av">
+          <img v-if="c.avatarImg" :src="c.avatarImg"><span v-else>{{ c.emoji||'🌿' }}</span>
+        </div>
+        <div class="music-cs-name">{{ c.name }}</div>
+      </div>
+    </div>
+
+    <!-- 角色反应区 -->
+    <div class="music-char-area">
+      <div class="music-no-char" v-if="!musicActiveChar||chars.length===0">
+        选择一个角色<br>一起听这首歌
+      </div>
+      <div v-else>
+        <div class="music-react-tip" v-if="musicReactions.length===0&&!musicReacting">播放歌曲后TA会有反应…</div>
+        <div class="music-react-tip" v-if="musicReacting">
+          <div class="dots" style="justify-content:center;display:flex;gap:5px"><s style="background:rgba(140,180,90,.4);width:5px;height:5px;border-radius:50%;display:block;animation:bnc 1.2s infinite"></s><s style="background:rgba(140,180,90,.4);width:5px;height:5px;border-radius:50%;display:block;animation:bnc 1.2s .2s infinite"></s><s style="background:rgba(140,180,90,.4);width:5px;height:5px;border-radius:50%;display:block;animation:bnc 1.2s .4s infinite"></s></div>
+        </div>
+        <div class="music-react-msg" v-for="(r,i) in musicReactions" :key="i">
+          <div class="music-react-av">
+            <img v-if="getChar(musicActiveChar)&&getChar(musicActiveChar).avatarImg" :src="getChar(musicActiveChar).avatarImg">
+            <span v-else>{{ getChar(musicActiveChar)&&(getChar(musicActiveChar).emoji||'🌿') }}</span>
+          </div>
+          <div class="music-react-bub">
+            <div class="music-react-name">{{ getChar(musicActiveChar)&&getChar(musicActiveChar).name }}</div>
+            <div class="music-react-text">{{ r }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 进度条+控制 -->
+    <div class="music-controls">
+      <div class="music-progress" @click="musicSeek">
+        <div class="music-prog-fill" :style="{width:musicProgress+'%'}"></div>
+        <div class="music-prog-dot" :style="{left:musicProgress+'%'}"></div>
+      </div>
+      <div class="music-ctrl-row">
+        <button class="mc-btn" @click="musicPrev"><svg width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5"><path d="M19 20L9 12l10-8v16z"/><line x1="5" y1="4" x2="5" y2="20"/></svg></button>
+        <div class="mc-play" @click="musicTogglePlay">
+          <svg v-if="!musicPlaying" width="22" height="22" viewBox="0 0 24 24" stroke="rgba(200,230,160,.9)" stroke-width="1.5" fill="none"><polygon points="5,3 19,12 5,21" fill="rgba(200,230,160,.6)"/></svg>
+          <svg v-else width="22" height="22" viewBox="0 0 24 24" stroke="rgba(200,230,160,.9)" stroke-width="1.8" fill="none"><rect x="6" y="4" width="4" height="16" fill="rgba(200,230,160,.6)" stroke="none"/><rect x="14" y="4" width="4" height="16" fill="rgba(200,230,160,.6)" stroke="none"/></svg>
+        </div>
+        <button class="mc-btn" @click="musicNext"><svg width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5"><path d="M5 4l10 8-10 8V4z"/><line x1="19" y1="4" x2="19" y2="20"/></svg></button>
+        <button class="mc-btn" @click="musicShowSearch=true" style="margin-left:8px"><svg width="18" height="18" viewBox="0 0 24 24" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 搜索覆层 -->
+  <div class="music-search-overlay" v-if="musicShowSearch">
+    <div class="music-search-nav">
+      <input class="music-search-input" v-model="musicKw" placeholder="搜索歌曲…" @keydown.enter="musicSearch" ref="musicSearchEl" autofocus>
+      <button class="music-search-cancel" @click="musicShowSearch=false;musicKw='';musicSearchRes=[]">取消</button>
+    </div>
+    <div style="padding:14px 16px 6px;font-size:11px;color:rgba(255,255,255,.2);letter-spacing:.5px" v-if="musicSearchRes.length===0&&!musicSearching">输入歌名或歌手搜索</div>
+    <div style="padding:20px;text-align:center" v-if="musicSearching">
+      <div class="dots" style="justify-content:center;display:flex;gap:6px"><s style="background:rgba(140,180,90,.4);width:6px;height:6px;border-radius:50%;display:block;animation:bnc 1.2s infinite"></s><s style="background:rgba(140,180,90,.4);width:6px;height:6px;border-radius:50%;display:block;animation:bnc 1.2s .2s infinite"></s><s style="background:rgba(140,180,90,.4);width:6px;height:6px;border-radius:50%;display:block;animation:bnc 1.2s .4s infinite"></s></div>
+    </div>
+    <div class="music-search-results">
+      <div class="music-search-item" v-for="(s,i) in musicSearchRes" :key="s.id" @click="musicAddSong(s)">
+        <div class="music-si-idx">{{ i+1 }}</div>
+        <div class="music-si-info">
+          <div class="music-si-name">{{ s.name }}</div>
+          <div class="music-si-sub">{{ s.artist }}</div>
+        </div>
+        <div class="music-si-add">＋</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 播放列表覆层 -->
+  <div class="music-playlist-overlay" v-if="musicShowPlaylist">
+    <div class="music-pl-nav">
+      <button class="music-back" @click="musicShowPlaylist=false"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+      <div class="music-pl-title">播放列表 ({{ musicPlaylist.length }})</div>
+      <button class="music-playlist-btn" @click="musicShowSearch=true;musicShowPlaylist=false">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="rgba(255,255,255,.4)" stroke-width="1.5" fill="none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </div>
+    <div class="music-pl-list" v-if="musicPlaylist.length>0">
+      <div class="music-pl-item" v-for="(s,i) in musicPlaylist" :key="s.id"
+        :class="{now:musicCurrentIdx===i}" @click="musicPlayAt(i)">
+        <div class="music-pl-num" :class="{now:musicCurrentIdx===i}">
+          <span v-if="musicCurrentIdx===i">♪</span><span v-else>{{ i+1 }}</span>
+        </div>
+        <div class="music-pl-info">
+          <div class="music-pl-name">{{ s.name }}</div>
+          <div class="music-pl-artist">{{ s.artist }}</div>
+        </div>
+        <div class="music-pl-del" @click.stop="musicRemove(i)">×</div>
+      </div>
+    </div>
+    <div class="music-pl-empty" v-else>还没有歌曲<br>点右上角搜索添加</div>
+  </div>
+</div>
+</transition>
+
+<!-- ════ 世界书 ════ -->
+<transition name="slide">
+<div class="wb-view" v-if="pg==='worldbook'">
+  <div class="wb-nav">
+    <button class="wb-back" @click="go('home')"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+    <div class="wb-nav-title">世界书</div>
+    <button class="wb-add-btn" @click="wbShowAdd=true">＋</button>
+  </div>
+
+  <div class="wb-body">
+    <!-- 空书架 -->
+    <div class="wb-empty" v-if="wbBooks.length===0">
+      <div style="width:100%">
+        <div class="wb-empty-shelf"></div>
+        <div style="height:32px"></div>
+        <div class="wb-empty-shelf"></div>
+      </div>
+      <div class="wb-empty-text">书架还是空的<br>点右上角 ＋ 添加第一本世界书</div>
+    </div>
+
+    <!-- 书架 -->
+    <div class="wb-shelf" v-else>
+      <div class="wb-shelf-row" v-for="(row,ri) in wbRows" :key="ri">
+        <div class="wb-book" v-for="b in row" :key="b.id"
+          :style="{background:b.color}"
+          :class="{off:!b.enabled}"
+          @click="wbOpen(b)">
+          <div class="wb-book-spine"></div>
+          <div class="wb-book-badge" :class="b.priority">
+            {{ b.priority==='priority'?'优':b.priority==='medium'?'中':'词' }}
+          </div>
+          <div class="wb-book-title">{{ b.name }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 世界书详情 -->
+  <div class="wb-detail" v-if="wbCurrent">
+    <div class="wb-detail-nav">
+      <button class="wb-back" @click="wbCurrent=null"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+      <div class="wb-detail-title">{{ wbCurrent.name }}</div>
+      <div class="toggle" :class="wbCurrent.enabled?'on':'off'" @click="wbCurrent.enabled=!wbCurrent.enabled;wbSave()" style="flex-shrink:0"><div class="toggle-dot"></div></div>
+    </div>
+    <div class="wb-detail-body">
+      <!-- 元信息 -->
+      <div class="wb-detail-meta">
+        <div class="wb-meta-tag type">{{ wbCurrent.type||'通用' }}</div>
+        <div class="wb-meta-tag" :class="wbCurrent.priority">
+          {{ wbCurrent.priority==='priority'?'🔴 优先':wbCurrent.priority==='medium'?'🟢 中等':'🔵 关键词触发' }}
+        </div>
+        <div class="wb-meta-tag scope">
+          {{ wbCurrent.scope==='global'?'🌐 全局':('👤 '+(getCharName(wbCurrent.scope)||wbCurrent.scope)) }}
+        </div>
+      </div>
+
+      <!-- 正文 -->
+      <div class="wb-content-card">
+        <div class="wb-content-header">
+          <div class="wb-content-label">世界书内容</div>
+        </div>
+        <textarea class="wb-textarea" v-model="wbCurrent.content"
+          placeholder="在这里写下世界观设定、人物背景、历史事件……\n这些内容会根据权限注入到角色对话中。"
+          @input="wbAutoSave"
+          rows="10"></textarea>
+      </div>
+
+      <!-- 关键词（仅keyword模式显示） -->
+      <div class="wb-keyword-section" v-if="wbCurrent.priority==='keyword'">
+        <div class="wb-keyword-label">触发关键词</div>
+        <div class="wb-keyword-input">
+          <input v-model="wbKwInput" placeholder="输入关键词后回车" @keydown.enter="wbAddKw">
+          <button @click="wbAddKw">添加</button>
+        </div>
+        <div class="wb-keyword-tags" v-if="wbCurrent.keywords&&wbCurrent.keywords.length">
+          <div class="wb-keyword-tag" v-for="(kw,ki) in wbCurrent.keywords" :key="ki">
+            {{ kw }}<span @click="wbRemoveKw(ki)">×</span>
+          </div>
+        </div>
+        <div style="font-size:11px;color:#ccc;margin-top:8px;line-height:1.7" v-else>还没有关键词，对话里出现关键词时才会触发注入</div>
+      </div>
+
+      <!-- 删除 -->
+      <div class="wb-danger-row">
+        <button class="wb-del-btn" @click="wbDelete">删除这本世界书</button>
+      </div>
+    </div>
+  </div>
+</div>
+</transition>
+
+<!-- 添加世界书弹窗 -->
+<div class="mask" v-if="wbShowAdd" @click.self="wbShowAdd=false">
+  <div class="sheet">
+    <div class="sh"></div>
+    <div class="stitle">新建世界书</div>
+    <div class="ssec">基本信息</div>
+    <div class="sg">
+      <div class="sr"><div class="sl">世界书名称</div><input class="si" v-model="wbNew.name" placeholder="例：赛博朋克2077世界观"/></div>
+      <div class="sr"><div class="sl">类型标签</div><input class="si" v-model="wbNew.type" placeholder="例：世界观 / 人物 / 历史 / 规则…"/></div>
+    </div>
+    <div class="ssec">注入权限</div>
+    <div class="sg">
+      <div class="sr">
+        <div class="sl">权限</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;background:#faf9f7;border-radius:10px;border:1.5px solid transparent" :style="wbNew.priority==='priority'?'border-color:var(--sage);background:rgba(90,110,74,.06)':''">
+            <input type="radio" v-model="wbNew.priority" value="priority" style="accent-color:var(--sage)">
+            <div><div style="font-size:13px;color:var(--text)">🔴 优先</div><div style="font-size:11px;color:#bbb;margin-top:2px">注入到system最前面，每次必读</div></div>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;background:#faf9f7;border-radius:10px;border:1.5px solid transparent" :style="wbNew.priority==='medium'?'border-color:var(--sage);background:rgba(90,110,74,.06)':''">
+            <input type="radio" v-model="wbNew.priority" value="medium" style="accent-color:var(--sage)">
+            <div><div style="font-size:13px;color:var(--text)">🟢 中等</div><div style="font-size:11px;color:#bbb;margin-top:2px">注入到system末尾，每次读取</div></div>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;background:#faf9f7;border-radius:10px;border:1.5px solid transparent" :style="wbNew.priority==='keyword'?'border-color:var(--sage);background:rgba(90,110,74,.06)':''">
+            <input type="radio" v-model="wbNew.priority" value="keyword" style="accent-color:var(--sage)">
+            <div><div style="font-size:13px;color:var(--text)">🔵 关键词触发</div><div style="font-size:11px;color:#bbb;margin-top:2px">对话出现关键词时才注入</div></div>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="ssec">适用范围</div>
+    <div class="sg">
+      <div class="sr">
+        <div class="sl">范围</div>
+        <select class="si" v-model="wbNew.scope" style="margin-top:4px">
+          <option value="global">🌐 全局（所有角色）</option>
+          <option v-for="c in chars" :key="c.id" :value="c.id">👤 {{ c.name }}</option>
+        </select>
+      </div>
+    </div>
+    <button class="mb ok" @click="wbCreate">创建</button>
+    <button class="mb no" @click="wbShowAdd=false">取消</button>
+  </div>
+</div>
+
+<!-- ════ 日历/行程 ════ -->
+<transition name="slide">
+<div class="cal-view" v-if="pg==='calendar'">
+  <div class="cal-view-nav">
+    <button class="cal-view-back" @click="go('home')"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+    <div class="cal-view-title">行程面板</div>
+    <div style="width:32px"></div>
+  </div>
+  <div class="cal-panel-list">
+    <!-- 用户行程入口 -->
+    <div class="cal-panel-item" @click="calShowUser=true">
+      <div class="cal-panel-av" style="border-radius:50%">
+        <img v-if="userProfile.avatarImg" :src="userProfile.avatarImg"><span v-else>🧑</span>
+      </div>
+      <div class="cal-panel-info">
+        <div class="cal-panel-name">{{ userProfile.name||'我' }}</div>
+        <div class="cal-panel-sub">
+          <div class="cal-panel-dot" style="background:#e05555"></div>
+          <span v-if="calTodayUserEvents.length>0">今日 {{ calTodayUserEvents.length }} 项行程</span>
+          <span v-else style="color:var(--sage);cursor:pointer">点击设定现实行程</span>
+        </div>
+      </div>
+      <div class="cal-panel-arrow">›</div>
+    </div>
+    <!-- 角色行程入口 -->
+    <div class="cal-panel-item" v-for="c in chars" :key="c.id" @click="calOpenChar(c)">
+      <div class="cal-panel-av">
+        <img v-if="c.avatarImg" :src="c.avatarImg"><span v-else>{{ c.emoji||'🌿' }}</span>
+      </div>
+      <div class="cal-panel-info">
+        <div class="cal-panel-name">{{ c.name }}</div>
+        <div class="cal-panel-sub">
+          <div class="cal-panel-dot"></div>
+          <span>点击查看今日独立行程</span>
+        </div>
+      </div>
+      <div class="cal-panel-arrow">›</div>
+    </div>
+    <div style="text-align:center;padding:32px;font-size:12px;color:#ccc" v-if="chars.length===0">还没有角色，先去通讯录添加吧</div>
+  </div>
+
+  <!-- 用户个人日历 -->
+  <div class="ucal-view" v-if="calShowUser">
+    <div class="ucal-nav">
+      <button class="cal-view-back" @click="calShowUser=false"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+      <div class="cal-view-title">我的行程</div>
+      <div style="width:32px"></div>
+    </div>
+    <div class="ucal-body">
+      <div class="ucal-month-nav">
+        <button class="ucal-month-btn" @click="calPrevMonth"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+        <div class="ucal-month-label">{{ calViewYear }}年{{ calViewMonth+1 }}月</div>
+        <button class="ucal-month-btn" @click="calNextMonth"><svg viewBox="0 0 16 16"><path d="M2 2l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg></button>
+      </div>
+      <div class="ucal-grid">
+        <div class="ucal-weekday" v-for="w in ['日','一','二','三','四','五','六']" :key="w">{{ w }}</div>
+        <div v-for="d in calDays" :key="d.key"
+          class="ucal-day"
+          :class="{today:d.isToday,'has-event':d.hasEvent,'other-month':!d.inMonth}"
+          @click="d.inMonth&&(calSelectedDate=d.dateStr)">
+          <div class="ucal-day-num">{{ d.date }}</div>
+          <div class="ucal-day-dot" v-if="d.hasEvent&&!d.isToday"></div>
+        </div>
+      </div>
+      <!-- 选中日期的事件 -->
+      <div v-if="calSelectedDate">
+        <div class="ucal-events-title">{{ calSelectedDate }} 的行程</div>
+        <div class="ucal-event-card" v-for="(ev,ei) in calEventsForDate(calSelectedDate)" :key="ei">
+          <div class="ucal-event-stripe" :style="{background:ev.color||'var(--sage)'}"></div>
+          <div class="ucal-event-info">
+            <div class="ucal-event-title">{{ ev.title }}</div>
+            <div class="ucal-event-meta">
+              <span v-if="ev.time">🕐 {{ ev.time }}</span>
+              <span v-if="ev.note">📝 {{ ev.note }}</span>
+              <span v-if="ev.notifyChar">🔔 提醒角色</span>
+            </div>
+          </div>
+          <div class="ucal-event-del" @click="calDeleteEvent(calSelectedDate,ei)">×</div>
+        </div>
+        <button class="ucal-add-btn" @click="calShowAddEvent=true">＋ 添加行程</button>
+      </div>
+      <div v-else style="text-align:center;padding:32px;font-size:13px;color:#ccc">点击日期查看或添加行程</div>
+    </div>
+  </div>
+
+  <!-- 角色日程详情 -->
+  <div class="char-sch-view" v-if="calCharView">
+    <div class="char-sch-nav">
+      <button class="cal-view-back" @click="calCharView=null"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+      <div class="cal-view-title">{{ calCharView.name }}的今日行程</div>
+      <div style="width:32px"></div>
+    </div>
+    <div class="char-sch-header">
+      <div class="char-sch-av-row">
+        <div class="char-sch-av">
+          <img v-if="calCharView.avatarImg" :src="calCharView.avatarImg"><span v-else>{{ calCharView.emoji||'🌿' }}</span>
+        </div>
+        <div>
+          <div class="char-sch-name">{{ calCharView.name }}</div>
+          <div class="char-sch-date">{{ D }} · {{ calCurrentSchedule?'已生成今日行程':'未生成' }}</div>
+        </div>
+      </div>
+      <!-- 当前心情 -->
+      <div class="char-sch-mood-row" v-if="calCurrentMood">
+        <div class="char-sch-mood-icon">{{ calCurrentMood.icon }}</div>
+        <div class="char-sch-mood-text">{{ calCurrentMood.text }}</div>
+      </div>
+      <!-- 意外事件 -->
+      <div class="char-sch-accident" v-if="calCurrentSchedule&&calCurrentSchedule.accident">
+        ⚡ 意外：{{ calCurrentSchedule.accident }}
+      </div>
+    </div>
+    <div class="char-sch-body">
+      <div class="char-sch-generating" v-if="calGenerating">
+        <div class="dots" style="display:flex;gap:6px"><s style="background:var(--sage-mid);width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s infinite"></s><s style="background:var(--sage-mid);width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s .2s infinite"></s><s style="background:var(--sage-mid);width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s .4s infinite"></s></div>
+        <div>正在生成今日行程…</div>
+      </div>
+      <div v-else-if="calCurrentSchedule&&calCurrentSchedule.items">
+        <div class="sch-item" v-for="(item,ii) in calCurrentSchedule.items" :key="ii" :class="{past:calIsPast(item.time)}">
+          <div class="sch-time-col"><div class="sch-time">{{ item.time }}</div></div>
+          <div class="sch-dot-col"><div class="sch-dot"></div></div>
+          <div style="flex:1;margin-bottom:12px">
+            <div class="sch-card">
+              <div class="sch-card-title">{{ item.title }}</div>
+              <div class="sch-card-sub" v-if="item.detail">{{ item.detail }}</div>
+              <div class="sch-card-mood" v-if="item.mood">{{ item.mood }}</div>
+            </div>
+          </div>
+        </div>
+        <button class="sch-refresh-btn" @click="calGenerateSchedule(calCharView,true)">↻ 重新生成今日行程</button>
+      </div>
+      <div v-else style="text-align:center;padding:48px;font-size:13px;color:#ccc;line-height:2">
+        还没有今日行程<br>
+        <button class="mb ok" style="margin-top:14px;width:auto;padding:10px 28px" @click="calGenerateSchedule(calCharView,false)">生成今日行程</button>
+      </div>
+    </div>
+  </div>
+</div>
+</transition>
+
+<!-- ════ 门 ════ -->
+<transition name="slide">
+<div class="door-view" v-if="pg==='door'">
+  <div class="sb dark"><span>{{ T }}</span><div class="sb-r"><div class="sig"><i></i><i></i><i></i><i></i></div><span style="font-size:10px">▲</span><div class="bat"><div class="bat-f" style="background:var(--sage)"></div></div></div></div>
+  <div class="door-nav">
+    <button class="door-back" @click="go('home')"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+    <div class="door-nav-title">门</div>
+    <div style="width:32px"></div>
+  </div>
+  <div class="door-list">
+    <div class="door-list-title">推开角色的门，开始线下见面</div>
+    <div class="door-char-card" v-for="c in chars" :key="c.id" @click="doorOpenChar(c)">
+      <div class="door-char-av"><img v-if="c.avatarImg" :src="c.avatarImg"><span v-else>{{ c.emoji||'🌿' }}</span></div>
+      <div class="door-char-info">
+        <div class="door-char-name">{{ c.name }}</div>
+        <div class="door-char-sub">{{ c.identity||c.relation||'点击推开门' }}</div>
+      </div>
+      <div class="door-char-badge" v-if="doorMeetings[c.id]&&doorMeetings[c.id].length>0">{{ doorMeetings[c.id].length }}次见面</div>
+      <div class="door-char-arrow">›</div>
+    </div>
+    <div class="door-empty" v-if="chars.length===0">
+      🚪<br>还没有角色<br>去通讯录添加角色，再回来推开门
+    </div>
+  </div>
+</div>
+</transition>
+
+<!-- 见面界面 -->
+<transition name="slide">
+<div class="meet-view" v-if="pg==='meet'" @click="meetLongpressBlock=null">
+  <div class="meet-nav">
+    <button class="meet-back" @click="pg='door'"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+    <div class="meet-av"><img v-if="doorActiveChar&&doorActiveChar.avatarImg" :src="doorActiveChar.avatarImg"><span v-else>{{ doorActiveChar&&(doorActiveChar.emoji||'🌿') }}</span></div>
+    <div class="meet-title">{{ doorActiveChar&&doorActiveChar.name }}</div>
+    <button class="meet-settings-btn" @click.stop="meetShowSettings=true">
+      <div class="meet-settings-line"></div><div class="meet-settings-line"></div><div class="meet-settings-line"></div>
+    </button>
+  </div>
+
+  <div class="meet-msgs" ref="meetMsgBox">
+    <template v-for="(item,idx) in meetCurrentBlocks" :key="item.id">
+      <div class="meet-scene-sep" v-if="item.type==='sep'">
+        <div class="meet-scene-sep-line"></div>
+        <div class="meet-scene-sep-text">{{ item.text }}</div>
+        <div class="meet-scene-sep-line"></div>
+      </div>
+      <div v-else class="meet-block" :class="item.role==='user'?'user-block':'ai-block'"
+        @touchstart.passive="meetStartLongpress(item,idx)"
+        @touchend.passive="meetCancelLongpress"
+        @touchmove.passive="meetCancelLongpress"
+        @mousedown="meetStartLongpress(item,idx)"
+        @mouseup="meetCancelLongpress">
+        <div class="meet-block-role">
+          <div class="meet-block-av">
+            <img v-if="item.role==='user'&&userProfile.avatarImg" :src="userProfile.avatarImg">
+            <span v-else-if="item.role==='user'">🧑</span>
+            <img v-else-if="doorActiveChar&&doorActiveChar.avatarImg" :src="doorActiveChar.avatarImg">
+            <span v-else>{{ doorActiveChar&&(doorActiveChar.emoji||'🌿') }}</span>
+          </div>
+          <span>{{ item.role==='user'?(userProfile.name||'我'):doorActiveChar&&doorActiveChar.name }}</span>
+        </div>
+        <div class="meet-block-text">{{ item.content }}</div>
+      </div>
+    </template>
+    <div class="meet-typing" v-if="meetTyping">
+      <div class="meet-typing-av"><img v-if="doorActiveChar&&doorActiveChar.avatarImg" :src="doorActiveChar.avatarImg"><span v-else>{{ doorActiveChar&&(doorActiveChar.emoji||'🌿') }}</span></div>
+      <div class="meet-typing-bub"><div class="dots"><s></s><s></s><s></s></div></div>
+    </div>
+    <div ref="meetAnchor"></div>
+  </div>
+
+  <div class="meet-ibar" @click.stop>
+    <div class="meet-ibar-row">
+      <div class="meet-input-wrap" contenteditable="true" ref="meetInputEl"
+        data-placeholder="说点什么，或描述你的动作…"
+        @input="meetOnInput"
+        @keydown.enter.exact.prevent="meetSend"></div>
+      <button class="meet-gen-btn" @click.stop="meetGenerate" :disabled="meetTyping" title="AI生成叙事">
+        <svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="meet-send-btn" :disabled="!meetHasInput||meetTyping" @click.stop="meetSend">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="meet-settings-panel" v-if="meetShowSettings" @click.self="meetShowSettings=false">
+    <div class="meet-settings-sheet" @click.stop>
+      <div class="meet-settings-handle"></div>
+      <div class="meet-settings-title">见面设置</div>
+      <div class="meet-settings-body">
+        <div class="meet-field">
+          <div class="meet-field-label">前情背景（可选）</div>
+          <textarea class="meet-field-input" v-model="meetConfig.context" placeholder="两人关系的近况、上次见面的情况…" rows="2"></textarea>
+        </div>
+        <div class="meet-field">
+          <div class="meet-field-label">地点</div>
+          <div class="meet-field-tags">
+            <div class="meet-tag-btn" v-for="loc in meetLocationPresets" :key="loc"
+              :class="{on:meetConfig.location===loc}" @click="meetConfig.location=loc">{{ loc }}</div>
+          </div>
+          <input class="meet-field-input" v-model="meetConfig.location" placeholder="或自定义地点…" style="margin-top:8px">
+        </div>
+        <div class="meet-field">
+          <div class="meet-field-label">时间</div>
+          <div class="meet-field-tags">
+            <div class="meet-tag-btn" v-for="tm in meetTimePresets" :key="tm"
+              :class="{on:meetConfig.time===tm}" @click="meetConfig.time=tm">{{ tm }}</div>
+          </div>
+        </div>
+        <div class="meet-field">
+          <div class="meet-field-label">情境氛围</div>
+          <div class="meet-field-tags">
+            <div class="meet-tag-btn" v-for="vibe in meetVibePresets" :key="vibe"
+              :class="{on:meetConfig.vibe===vibe}" @click="meetConfig.vibe=vibe">{{ vibe }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="meet-settings-actions">
+        <button class="meet-action-btn primary" @click="meetStartNew">开始新的见面</button>
+        <button class="meet-action-btn danger" @click="meetEndMeeting" v-if="meetCurrentSession">结束本次见面并保存记忆</button>
+        <button class="meet-action-btn neutral" @click="meetShowSettings=false">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="meet-edit-mask" v-if="meetLongpressBlock!==null" @click.self="meetLongpressBlock=null">
+    <div class="meet-edit-card" @click.stop>
+      <div class="meet-edit-title">编辑内容</div>
+      <textarea class="meet-edit-textarea" v-model="meetEditText" rows="4"></textarea>
+      <div class="meet-edit-btns">
+        <button class="meet-edit-btn ok" @click="meetSaveEdit">保存</button>
+        <button class="meet-edit-btn del" @click="meetDeleteBlock">删除</button>
+        <button class="meet-edit-btn cancel" @click="meetLongpressBlock=null">取消</button>
+      </div>
+    </div>
+  </div>
+</div>
+</transition>
+
+<!-- ════ 论坛 ════ -->
+<transition name="slide">
+<div class="forum-view" v-if="pg==='forum'">
+  <div class="sb dark"><span>{{ T }}</span><div class="sb-r"><div class="sig"><i></i><i></i><i></i><i></i></div><span style="font-size:10px">▲</span><div class="bat"><div class="bat-f" style="background:var(--sage)"></div></div></div></div>
+  <template v-if="!forumDetailPost">
+  <div class="forum-header">
+    <div class="forum-header-title">{{ forumName }}</div>
+    <div class="forum-header-sub">{{ forumSlogan }}</div>
+    <button class="forum-header-back" @click="go('home')"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg>桌面</button>
+  </div>
+  <div class="forum-tabs">
+    <div class="forum-tab" v-for="tab in forumTabs" :key="tab.id" :class="{on:forumTab===tab.id}" @click="forumTab=tab.id">{{ tab.name }}</div>
+  </div>
+  <div class="forum-search"><div class="forum-search-inner"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input v-model="forumSearchKw" placeholder="搜索帖子/用户名"></div></div>
+  </template>
+  <div class="forum-list" v-if="!forumDetailPost">
+    <div class="forum-generating" v-if="forumGenerating"><div class="dots" style="display:flex;gap:6px"><s style="background:var(--sage-mid);width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s infinite"></s><s style="background:var(--sage-mid);width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s .2s infinite"></s><s style="background:var(--sage-mid);width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s .4s infinite"></s></div><div>正在生成论坛内容…</div></div>
+    <template v-else>
+      <div class="forum-post-card" :class="{pinned:post.pinned}" v-for="post in forumFilteredPosts" :key="post.id" @click="forumOpenPost(post)">
+        <div class="forum-post-title"><span class="forum-pin-badge" v-if="post.pinned">置顶</span><span class="forum-tag" :style="{background:forumTagColor(post.tag)+'22',color:forumTagColor(post.tag)}">{{ post.tag }}</span>{{ post.title }}</div>
+        <div class="forum-post-preview" v-if="post.preview"><span v-if="post.highlight" v-html="post.highlight"></span><span v-else>{{ post.preview }}</span></div>
+        <div class="forum-post-meta"><span><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{{ post.replyCount }}</span><span><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>{{ post.viewCount }}</span><span>{{ post.author }}</span><span style="margin-left:auto">{{ post.time }}</span></div>
+      </div>
+      <div style="text-align:center;padding:32px;font-size:12px;color:#ccc" v-if="forumFilteredPosts.length===0">暂无帖子，点右下角刷新生成</div>
+    </template>
+  </div>
+  <div class="forum-detail" v-if="forumDetailPost" @touchstart.passive="swipeStart" @touchend.passive="swipeEnd">
+    <div class="forum-detail-nav"><button class="forum-detail-back" @click="forumDetailPost=null"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button><div class="forum-detail-title">{{ forumDetailPost.title }}</div></div>
+    <div class="forum-detail-body" ref="forumDetailBody">
+      <div class="forum-op">
+        <div class="forum-op-header"><div class="forum-op-av"><img v-if="forumDetailPost.authorIsUser&&userProfile.avatarImg" :src="userProfile.avatarImg"><span v-else>{{ forumDetailPost.authorEmoji||'👤' }}</span></div><div><div class="forum-op-name">{{ forumDetailPost.author }}</div><div class="forum-op-time">{{ forumDetailPost.time }}</div></div><span class="forum-tag" :style="{background:forumTagColor(forumDetailPost.tag)+'22',color:forumTagColor(forumDetailPost.tag),marginLeft:'auto'}">{{ forumDetailPost.tag }}</span></div>
+        <div class="forum-op-title">{{ forumDetailPost.title }}</div>
+        <div class="forum-op-content">{{ forumDetailPost.content }}</div>
+        <div class="forum-op-fakeimg" v-if="forumDetailPost.fakeImg" @click="forumPreviewImg=forumDetailPost.fakeImg"><div class="forum-op-fakeimg-title">📷 {{ forumDetailPost.fakeImg.title }}</div><div class="forum-op-fakeimg-sub">点击查看图片描述</div></div>
+        <div class="forum-op-realimg" v-if="forumDetailPost.realImg" @click="forumRealPreview=forumDetailPost.realImg"><img :src="forumDetailPost.realImg"></div>
+        <div class="forum-op-stats"><div class="forum-op-stat" :class="{liked:forumDetailPost.userLiked}" @click="forumToggleLike(forumDetailPost)"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" :fill="forumDetailPost.userLiked?'currentColor':'none'"/></svg>{{ forumDetailPost.likes }}</div><div class="forum-op-stat"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{{ (forumDetailPost.replies||[]).length }} 回复</div></div>
+      </div>
+      <div class="forum-replies-title">全部回复 · {{ (forumDetailPost.replies||[]).length }}楼</div>
+      <div class="forum-reply" v-for="(r,ri) in (forumDetailPost.replies||[])" :key="ri">
+        <div class="forum-reply-av"><img v-if="r.authorIsUser&&userProfile.avatarImg" :src="userProfile.avatarImg"><span v-else>{{ r.authorEmoji||'👤' }}</span></div>
+        <div class="forum-reply-body"><div class="forum-reply-name">{{ r.author }}<span class="forum-reply-floor">{{ ri+1 }}楼</span></div><div class="forum-reply-text">{{ r.content }}</div><div class="forum-reply-fakeimg" v-if="r.fakeImg" @click="forumPreviewImg=r.fakeImg"><div class="forum-reply-fakeimg-t">📷 {{ r.fakeImg.title }}</div></div><div style="margin-top:6px;border-radius:8px;overflow:hidden;cursor:pointer;max-width:160px" v-if="r.realImg" @click="forumRealPreview=r.realImg"><img :src="r.realImg" style="width:100%;display:block"></div><div class="forum-reply-time">{{ r.time }}</div></div>
+      </div>
+      <div v-if="forumReplyTyping" style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#fff"><div class="forum-reply-av"><span>🤖</span></div><div style="background:#f2f1ed;border-radius:14px;padding:8px 14px"><div class="dots" style="display:flex;gap:4px"><s style="background:#bbb;width:6px;height:6px;border-radius:50%;display:block;animation:bnc 1.2s infinite"></s><s style="background:#bbb;width:6px;height:6px;border-radius:50%;display:block;animation:bnc 1.2s .2s infinite"></s><s style="background:#bbb;width:6px;height:6px;border-radius:50%;display:block;animation:bnc 1.2s .4s infinite"></s></div></div></div>
+      <div ref="forumReplyAnchor"></div>
+    </div>
+    <div class="forum-detail-ibar"><button class="forum-reply-img-btn" @click="$refs.forumImgInput.click()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><input type="file" accept="image/*" ref="forumImgInput" style="display:none" @change="forumPickImg"></button><div class="forum-reply-input" contenteditable="true" ref="forumReplyInputEl" data-placeholder="发表回复…" @input="forumReplyOnInput" @keydown.enter.exact.prevent="forumSendReply"></div><button class="forum-reply-send" :disabled="!forumReplyHasInput||forumReplyTyping" @click="forumSendReply"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>
+  </div>
+  <div class="forum-post-mask" v-if="forumShowPost" @click.self="forumShowPost=false">
+    <div class="forum-post-sheet" @click.stop>
+      <div class="forum-post-handle"></div><div class="forum-post-stitle">发布帖子</div>
+      <div class="forum-post-body">
+        <div class="forum-post-field"><div class="forum-post-label">版块</div><div class="forum-post-tag-row"><div class="forum-post-tag" v-for="tab in forumTabs.filter(t=>t.id!=='all')" :key="tab.id" :class="{on:forumNewPost.tag===tab.name}" @click="forumNewPost.tag=tab.name">{{ tab.name }}</div></div></div>
+        <div class="forum-post-field"><div class="forum-post-label">标题</div><input class="forum-post-input" v-model="forumNewPost.title" placeholder="帖子标题（必填）" style="margin:0"></div>
+        <div class="forum-post-field"><div class="forum-post-label">正文</div><textarea class="forum-post-input" v-model="forumNewPost.content" placeholder="说说你想说的…" rows="4"></textarea></div>
+        <div class="forum-post-field" v-if="forumNewPost.imgData"><div class="forum-post-label">已附图</div><img :src="forumNewPost.imgData" style="max-width:100%;border-radius:8px;margin-top:4px"><div style="font-size:11px;color:var(--text-soft);margin-top:4px;cursor:pointer" @click="forumNewPost.imgData=null">点击移除</div></div>
+        <div class="forum-post-field"><button style="background:none;border:1px dashed var(--border);border-radius:10px;padding:8px 14px;font-size:12px;color:var(--text-soft);cursor:pointer;font-family:inherit;width:100%" @click="$refs.forumPostImgInput.click()">📷 附上图片</button><input type="file" accept="image/*" ref="forumPostImgInput" style="display:none" @change="forumPickPostImg"></div>
+        <div class="forum-post-anon-row"><div><div class="forum-post-anon-label">使用马甲发帖</div><div class="forum-post-anon-sub">角色有30%概率认出你并在私聊中提及</div></div><div class="toggle" :class="forumNewPost.anon?'on':'off'" @click="forumNewPost.anon=!forumNewPost.anon"><div class="toggle-dot"></div></div></div>
+        <div class="forum-post-field" v-if="forumNewPost.anon"><div class="forum-post-label">马甲ID</div><input class="forum-post-input" v-model="forumNewPost.anonName" placeholder="输入马甲用户名" style="margin:0"></div>
+      </div>
+      <div class="forum-post-actions"><button class="forum-post-btn ok" @click="forumSubmitPost">发布</button><button class="forum-post-btn cancel" @click="forumShowPost=false">取消</button></div>
+    </div>
+  </div>
+  <div class="forum-img-preview" v-if="forumPreviewImg" @click="forumPreviewImg=null"><div class="forum-img-preview-title">📷 {{ forumPreviewImg.title }}</div><div class="forum-img-preview-text">{{ forumPreviewImg.detail }}</div><div class="forum-img-preview-hint">点击关闭</div></div>
+  <div class="forum-img-preview" v-if="forumRealPreview" @click="forumRealPreview=null"><img :src="forumRealPreview" style="max-width:100%;max-height:70vh;border-radius:12px"><div class="forum-img-preview-hint">点击关闭</div></div>
+  <button class="forum-fab" @click="forumRefresh" v-if="!forumDetailPost"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+  <div class="forum-bottom" v-if="!forumDetailPost">
+    <div class="forum-nav-btn on"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>首页</span></div>
+    <div class="forum-nav-btn"><svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg><span>版块</span></div>
+    <div class="forum-nav-post" @click="forumShowPost=true"><div class="forum-nav-post-inner"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>发帖</span></div></div>
+    <div class="forum-nav-btn"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>消息</span></div>
+    <div class="forum-nav-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>我的</span></div>
+  </div>
+</div>
+</transition>
+
+<!-- ════ 入侵 ════ -->
+<transition name="slide">
+<div class="inv-list" v-if="pg==='invasion'">
+  <div class="sb dark"><span>{{ T }}</span><div class="sb-r"><div class="sig"><i></i><i></i><i></i><i></i></div><span style="font-size:10px">▲</span><div class="bat"><div class="bat-f" style="background:var(--sage)"></div></div></div></div>
+  <div class="inv-list-nav"><button class="inv-list-back" @click="go('home')"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button><div class="inv-list-title">入侵</div><div style="width:32px"></div></div>
+  <div class="inv-list-body">
+    <div style="font-size:11px;color:var(--text-soft);letter-spacing:.5px;margin-bottom:12px">选择目标设备</div>
+    <div class="inv-char-row" v-for="c in chars" :key="c.id"><div class="inv-char-av"><img v-if="c.avatarImg" :src="c.avatarImg"><span v-else>{{ c.emoji||'🌿' }}</span></div><div class="inv-char-info"><div class="inv-char-name">{{ c.name }}</div><div class="inv-char-sub">{{ c.identity||c.relation||'未知身份' }}</div></div><button class="inv-btn" @click="invStart(c)">入侵</button></div>
+    <div style="text-align:center;padding:40px;font-size:13px;color:#ccc" v-if="chars.length===0">还没有角色</div>
+  </div>
+  <div class="inv-hack" v-if="invPhase!=='idle'&&invPhase!=='phone'">
+    <div class="inv-hack-grid"></div><div class="inv-hack-scan"></div><div class="inv-hack-glitch"></div>
+    <div class="inv-hack-logo">[ SYSTEM BREACH ]</div>
+    <div class="inv-hack-title">{{ invTarget&&invTarget.name }}'s DEVICE</div>
+    <div class="inv-hack-sub">UNAUTHORIZED ACCESS</div>
+    <div class="inv-pwd-box" v-if="invPhase==='pwd'">
+      <div class="inv-pwd-label">ENTER PASSWORD</div>
+      <div class="inv-pwd-dots">
+        <div class="inv-pwd-dot" v-for="n in invPwdMaxLen" :key="n" :class="{filled:invPwdInput.length>=n}"></div>
+      </div>
+      <div class="inv-pwd-hint">提示：{{ (invTarget&&invPasswords[invTarget.id]&&invPasswords[invTarget.id].hint)||'与角色相关' }}</div>
+      <div class="inv-pwd-err" v-if="invPwdErr">{{ invPwdErr }}</div>
+      <div class="inv-numpad">
+        <div class="inv-numpad-btn" v-for="n in [1,2,3,4,5,6,7,8,9]" :key="n" @click="invNumPress(String(n))">{{ n }}</div>
+        <div class="inv-numpad-btn del" @click="invNumPress('del')">⌫</div>
+        <div class="inv-numpad-btn" @click="invNumPress('0')">0</div>
+        <div class="inv-numpad-btn ok" @click="invTryPwd">✓</div>
+      </div>
+    </div>
+    <div class="inv-connecting" v-if="invPhase==='genPwd'||invPhase==='connecting'">
+      <div class="inv-conn-text">{{ invPhase==='genPwd'?'正在分析目标特征…':'正在建立连接…' }}</div>
+      <div class="inv-conn-bar"><div class="inv-conn-fill" :style="{width:invProgress+'%'}"></div></div>
+      <div class="inv-conn-log">{{ invConnLog }}</div>
+    </div>
+    <div class="inv-detected" v-if="invPhase==='detected'">
+      <div class="inv-det-icon">⚠️</div>
+      <div class="inv-det-title">ACCESS DENIED</div>
+      <div class="inv-det-text">入侵被发现<br>{{ invTarget&&invTarget.name }} 察觉到了异常</div>
+      <button class="inv-enter-btn" style="margin-top:20px;width:220px" @click="invPhase='idle'">[ ABORT ]</button>
+    </div>
+  </div>
+  <div class="inv-phone" v-if="invPhase==='phone'">
+    <div class="inv-phone-wallpaper"></div>
+    <div class="inv-phone-status">
+      <div class="inv-phone-time">{{ T }}</div>
+      <div class="inv-phone-signals" style="display:flex;align-items:flex-end;gap:2px">
+        <div class="inv-phone-signal-bar" style="height:4px"></div>
+        <div class="inv-phone-signal-bar" style="height:7px"></div>
+        <div class="inv-phone-signal-bar" style="height:10px"></div>
+        <div class="inv-phone-signal-bar" style="height:13px"></div>
+        <div class="inv-phone-battery" style="margin-left:6px">
+          <div class="inv-phone-battery-fill"></div>
+        </div>
+      </div>
+    </div>
+    <button class="inv-phone-exit" @click="invExit">退出入侵</button>
+    <div class="inv-phone-hacked">HACKED · {{ invTarget&&invTarget.name }}</div>
+
+    <!-- 加载中 -->
+    <div v-if="invPhoneLoading" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;position:relative;z-index:5">
+      <div style="font-size:11px;color:rgba(255,255,255,.4);font-family:monospace;letter-spacing:2px">LOADING DATA...</div>
+      <div style="width:160px;height:2px;background:rgba(255,255,255,.1);border-radius:1px;overflow:hidden">
+        <div style="height:100%;background:rgba(255,255,255,.5);border-radius:1px;animation:invLoad 1.5s ease-in-out infinite"></div>
+      </div>
+    </div>
+
+    <div class="inv-phone-body" v-else>
+      <div class="inv-apps-grid">
+        <!-- 钱包 -->
+        <div class="inv-app" @click="invOpenedApp='wallet'">
+          <div class="inv-app-ic" style="background:#2c2c2c">
+            <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,220,100,.85)" stroke-width="1.6" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="3"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/><circle cx="17" cy="14" r="1.5" fill="rgba(255,220,100,.85)" stroke="none"/></svg>
+          </div>
+          <div class="inv-app-lbl">钱包</div>
+        </div>
+        <!-- 搜索 -->
+        <div class="inv-app" @click="invOpenedApp='search'">
+          <div class="inv-app-ic" style="background:#1e2a3a">
+            <svg viewBox="0 0 24 24" fill="none" stroke="rgba(120,180,255,.85)" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
+          </div>
+          <div class="inv-app-lbl">搜索</div>
+        </div>
+        <!-- 音乐 -->
+        <div class="inv-app" @click="invOpenedApp='music'">
+          <div class="inv-app-ic" style="background:#2a1a2e">
+            <svg viewBox="0 0 24 24" fill="none" stroke="rgba(200,130,255,.85)" stroke-width="1.6" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          </div>
+          <div class="inv-app-lbl">音乐</div>
+        </div>
+        <!-- 备忘录 -->
+        <div class="inv-app" @click="invOpenedApp='memo'">
+          <div class="inv-app-ic" style="background:#2a2618">
+            <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,210,80,.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+          </div>
+          <div class="inv-app-lbl">备忘录</div>
+        </div>
+        <!-- 相册 -->
+        <div class="inv-app" @click="invOpenedApp='photo'">
+          <div class="inv-app-ic" style="background:#1e1e2e">
+            <svg viewBox="0 0 24 24" fill="none" stroke="rgba(150,180,255,.85)" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="inv-app-lbl">相册</div>
+        </div>
+        <!-- 购物 -->
+        <div class="inv-app" @click="invOpenedApp='shop'">
+          <div class="inv-app-ic" style="background:#2a1a1a">
+            <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,140,120,.85)" stroke-width="1.6" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          </div>
+          <div class="inv-app-lbl">购物</div>
+        </div>
+        <!-- 通话 -->
+        <div class="inv-app" @click="invOpenedApp='call'">
+          <div class="inv-app-ic" style="background:#1a2e1a">
+            <svg viewBox="0 0 24 24" fill="none" stroke="rgba(100,220,120,.85)" stroke-width="1.6" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 5.49 5.49l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
+          <div class="inv-app-lbl">通话</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dock 底栏：电话｜消息｜搜索 -->
+    <div class="inv-phone-dock" v-if="!invPhoneLoading">
+      <div class="inv-dock-app" @click="invOpenedApp='call'">
+        <div class="inv-dock-ic" style="background:#1a2e1a">
+          <svg viewBox="0 0 24 24" fill="none" stroke="rgba(100,220,120,.9)" stroke-width="1.6" stroke-linecap="round" width="24" height="24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 5.49 5.49l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <div class="inv-dock-lbl">电话</div>
+      </div>
+      <div class="inv-dock-app" @click="invOpenedApp='chat'">
+        <div class="inv-dock-ic" style="background:#1a2a1a">
+          <svg viewBox="0 0 24 24" fill="none" stroke="rgba(120,220,140,.9)" stroke-width="1.6" stroke-linecap="round" width="24" height="24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="10" x2="15" y2="10" stroke-width="1.4"/><line x1="9" y1="13" x2="13" y2="13" stroke-width="1.4"/></svg>
+        </div>
+        <div class="inv-dock-lbl">消息</div>
+      </div>
+      <div class="inv-dock-app" @click="invOpenedApp='search'">
+        <div class="inv-dock-ic" style="background:#1e2a3a">
+          <svg viewBox="0 0 24 24" fill="none" stroke="rgba(120,180,255,.9)" stroke-width="1.6" stroke-linecap="round" width="24" height="24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
+        </div>
+        <div class="inv-dock-lbl">搜索</div>
+      </div>
+    </div>
+
+    <!-- App 内容面板 -->
+    <div class="inv-app-panel" v-if="invOpenedApp">
+      <div class="inv-app-panel-nav">
+        <button class="inv-app-panel-back" @click="invChatDetail?invChatDetail=null:invOpenedApp=null"><svg viewBox="0 0 10 14"><path d="M8 1L2 7l6 6"/></svg></button>
+        <div class="inv-app-panel-title">{{ invChatDetail?invChatDetail.name:invAppTitle }}</div>
+      </div>
+
+      <!-- 消息聊天详情 -->
+      <div class="inv-chat-detail" v-if="invChatDetail">
+        <div class="inv-chat-msgs">
+          <div v-if="invChatLoading" style="display:flex;flex-direction:column;align-items:center;padding:40px;gap:10px;color:#999;font-size:13px">
+            <div class="dots" style="display:flex;gap:4px"><s style="background:#ccc;width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s infinite"></s><s style="background:#ccc;width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s .2s infinite"></s><s style="background:#ccc;width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s .4s infinite"></s></div>
+            <div>生成聊天记录…</div>
+          </div>
+          <div v-for="(msg,i) in (invChatDetail.messages||[])" :key="i" class="inv-chat-bubble-row" :class="(msg.isMe||msg.role==='char')?'me':''">
+            <div class="inv-chat-bubble">
+              {{ msg.content }}
+              <div v-if="msg.translation" style="margin-top:3px">
+                <button class="trans-btn" style="font-size:10px" @click.stop="msg.showTrans=!msg.showTrans">{{ msg.showTrans?'收起':'查看翻译' }}</button>
+                <div v-if="msg.showTrans" class="trans-text" style="font-size:11px;margin-top:2px">{{ msg.translation }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 普通App内容 -->
+      <div class="inv-app-panel-body" v-else>
+        <div v-if="invPhoneLoading" style="display:flex;flex-direction:column;align-items:center;padding:48px;gap:12px;color:#ccc;font-size:13px">
+          <div class="dots" style="display:flex;gap:4px"><s style="background:#ccc;width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s infinite"></s><s style="background:#ccc;width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s .2s infinite"></s><s style="background:#ccc;width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s .4s infinite"></s></div>
+          <div>载入中…</div>
+        </div>
+        <template v-else>
+        <div v-if="invOpenedApp==='chat'">
+          <div class="inv-section-title">私信</div>
+          <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.055);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.035)">
+            <!-- 用户真实对话置顶 -->
+            <div class="inv-chat-row" @click="invOpenChat({name:userProfile.name||'用户',emoji:'🧑',isUserChat:true,messages:[]})" style="cursor:pointer">
+              <div class="inv-chat-av"><span>{{ userProfile.avatarImg?'':' 🧑' }}</span><img v-if="userProfile.avatarImg" :src="userProfile.avatarImg" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>
+              <div style="flex:1;min-width:0">
+                <div class="inv-chat-name">{{ userProfile.name||'用户' }}</div>
+                <div class="inv-chat-prev">{{ (allMsgs[invTarget&&invTarget.id]||[]).slice(-1)[0]&&((allMsgs[invTarget&&invTarget.id]||[]).slice(-1)[0].role==='assistant'?(invTarget&&invTarget.name)+'：'+(allMsgs[invTarget&&invTarget.id]||[]).slice(-1)[0].content:'你：'+(allMsgs[invTarget&&invTarget.id]||[]).slice(-1)[0].content)||' ' }}</div>
+              </div>
+            </div>
+            <div class="inv-chat-row" v-for="(item,i) in (invAppData.chats||[])" :key="i" @click="invOpenChat(item)" style="cursor:pointer">
+              <div class="inv-chat-av"><span>{{ item.emoji||'👤' }}</span></div>
+              <div style="flex:1;min-width:0"><div class="inv-chat-name">{{ item.name }}</div><div class="inv-chat-prev">{{ item.lastMsg }}</div></div>
+              <div class="inv-chat-time">{{ item.time }}</div>
+            </div>
+          </div>
+          <div class="inv-section-title" style="margin-top:14px">群聊</div>
+          <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.055);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.035)">
+            <div v-if="groups&&groups.length>0">
+              <div class="inv-chat-row" v-for="(g,i) in groups" :key="'g'+i" @click="invOpenGroupChat(g)" style="cursor:pointer">
+                <div class="inv-chat-av"><span>{{ g.emoji||'👥' }}</span></div>
+                <div style="flex:1;min-width:0"><div class="inv-chat-name">{{ g.name }}</div><div class="inv-chat-prev">{{ g.lastMsg||'暂无消息' }}</div></div>
+                <div class="inv-chat-time">{{ g.lastTime||''  }}</div>
+              </div>
+            </div>
+            <div v-else style="padding:14px;color:#999;font-size:13px;text-align:center">暂无群聊</div>
+          </div>
+        </div>
+        <div v-else-if="invOpenedApp==='wallet'">
+          <div class="inv-wallet-card">
+            <div class="inv-wallet-label">余额</div>
+            <div class="inv-wallet-amount">¥{{ invAppData.wallet&&invAppData.wallet.balance||invCalcBalance(invAppData.wallet) }}</div>
+          </div>
+          <div class="inv-section-title">最近交易</div>
+          <div style="background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.055);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.035)">
+            <div v-for="(item,i) in (invAppData.wallet&&invAppData.wallet.transactions||invAppData.wallet||[])" :key="i" style="padding:12px 14px;border-bottom:1px solid rgba(0,0,0,.04);display:flex;align-items:center;gap:10px">
+              <div style="flex:1"><div style="font-size:13.5px;color:#2a2a2a">{{ item.title }}</div><div style="font-size:11px;color:#999;margin-top:2px">{{ item.time }}</div></div>
+              <div :style="{fontSize:'15px',fontWeight:'500',color:item.type==='in'?'#287840':'#b03030'}">{{ item.type==='in'?'+':'-' }}{{ item.amount }}</div>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="invOpenedApp==='search'">
+          <div class="inv-section-title">最近搜索</div>
+          <div class="inv-item" v-for="(item,i) in (invAppData.searches||[])" :key="i">
+            <div class="inv-item-row"><div class="inv-item-main" style="display:flex;align-items:center;gap:8px"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="#999" stroke-width="1.8"><circle cx="9" cy="9" r="6"/><path d="M14 14L18 18"/></svg>{{ item.keyword }}</div><div class="inv-item-meta">{{ item.time }}</div></div>
+          </div>
+        </div>
+        <div v-else-if="invOpenedApp==='music'">
+          <div class="inv-section-title">最近播放</div>
+          <div class="inv-item" v-for="(item,i) in (invAppData.songs||[])" :key="i">
+            <div class="inv-item-row"><div class="inv-item-main">{{ item.name }}<div class="inv-item-sub">{{ item.artist }}</div></div><div class="inv-item-badge blue">{{ item.count }}次</div></div>
+          </div>
+        </div>
+        <div v-else-if="invOpenedApp==='memo'">
+          <div class="inv-section-title">备忘录</div>
+          <div v-for="(item,i) in (invAppData.memos||[])" :key="i"
+            :class="['inv-memo-item',item.locked?'locked':'',item._open?'open':'']"
+            style="cursor:pointer;transition:all .2s"
+            @click="invToggleMemo(item)">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <div class="inv-memo-title" :style="{color:item.locked?'#c05040':''}">
+                {{ item.locked?'🔒 '+item.title:item.title }}
+              </div>
+              <svg :style="{transform:item._open?'rotate(180deg)':'rotate(0)',transition:'transform .2s',flex:'none'}" width="14" height="14" viewBox="0 0 24 24" fill="none" :stroke="item.locked?'#c05040':'#999'" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div v-if="!item._open" class="inv-memo-preview">
+              {{ item.locked?'🔒 点击输入密码查看':(item.content||'').split(/[。！？\n]/)[0].slice(0,30)+(((item.content||'').length>30||(item.content||'').includes('。')||(item.content||'').includes('\n'))?'…':'') }}
+            </div>
+            <div v-if="item._open&&!item.locked" style="margin-top:10px;font-size:13.5px;color:#2a2a00;line-height:1.9;font-weight:300;white-space:pre-wrap;border-top:1px solid rgba(220,190,80,.2);padding-top:10px">{{ item.content }}</div>
+            <div v-if="item._open&&item.locked" style="margin-top:10px;border-top:1px solid rgba(200,80,60,.15);padding-top:10px">
+              <div style="font-size:12px;color:#c05040;margin-bottom:8px">输入密码解锁</div>
+              <div style="display:flex;gap:8px" @click.stop>
+                <input style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(200,80,60,.3);border-radius:8px;padding:7px 12px;font-size:13px;color:#2a2a00;font-family:monospace;outline:none" type="password" v-model="invMemoPassword" placeholder="输入密码" @keydown.enter="invUnlockMemoItem(item)">
+                <button style="padding:7px 14px;background:rgba(200,80,60,.1);border:1px solid rgba(200,80,60,.25);border-radius:8px;color:#c05040;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap" @click="invUnlockMemoItem(item)">解锁</button>
+              </div>
+              <div v-if="invMemoErr" style="font-size:11px;color:#c05040;margin-top:6px">{{ invMemoErr }}</div>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="invOpenedApp==='photo'">
+          <div class="inv-section-title">相册 · 点击查看</div>
+          <div class="inv-photo-grid">
+            <div v-for="(item,i) in (invAppData.photos||[]).filter(p=>!p.locked)" :key="i" class="inv-photo-item" @click="invOpenPhoto(item)">
+              <div class="inv-photo-label">{{ item.title }}</div>
+            </div>
+          </div>
+          <div v-if="(invAppData.photos||[]).some(p=>p.locked)" style="margin-top:12px">
+            <div style="font-size:11px;color:#888;margin-bottom:6px;display:flex;align-items:center;gap:6px"><span style="font-size:14px">🔒</span> 私密相册</div>
+            <div class="inv-photo-grid">
+              <div v-for="(item,i) in (invAppData.photos||[]).filter(p=>p.locked)" :key="'l'+i" class="inv-photo-item locked" @click="invOpenPhoto(item)">
+                <div class="inv-photo-lock">🔒</div>
+                <div class="inv-photo-label" style="color:rgba(180,0,0,.4)">私密</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="invOpenedApp==='call'">
+          <div class="inv-section-title">通话记录</div>
+          <div class="inv-item" v-for="(item,i) in (invAppData.calls||[])" :key="i">
+            <div class="inv-item-row"><div class="inv-item-main">{{ item.name }}<div class="inv-item-sub">{{ item.note }}</div></div><div :class="['inv-item-badge',item.type==='missed'?'red':item.type==='rejected'?'blue':'green']">{{ item.type==='missed'?'未接':item.type==='rejected'?'拒接':'已接' }}</div></div>
+            <div class="inv-item-meta" style="margin-top:4px">{{ item.time }}</div>
+          </div>
+        </div>
+        <div v-else-if="invOpenedApp==='shop'">
+          <div class="inv-section-title">最近购买</div>
+          <div class="inv-item" v-for="(item,i) in (invAppData.bought||[])" :key="i"><div class="inv-item-row"><div class="inv-item-main">{{ item.name }}<div class="inv-item-sub">{{ item.note }}</div></div><div class="inv-item-badge green">¥{{ item.amount||item.price }}</div></div><div class="inv-item-meta" style="margin-top:4px">{{ item.time }}</div></div>
+          <div class="inv-section-title" style="margin-top:12px">购物车</div>
+          <div class="inv-item" v-for="(item,i) in (invAppData.cart||[])" :key="'c'+i"><div class="inv-item-row"><div class="inv-item-main">{{ item.name }}<div class="inv-item-sub">{{ item.note }}</div></div><div class="inv-item-badge red">¥{{ item.amount||item.price }}</div></div></div>
+        </div>
+        </template>
+      </div>
+
+      <!-- 图片详情弹窗 -->
+      <div class="inv-photo-detail" v-if="invPhotoDetail" @click.self="invPhotoDetail=null">
+        <div class="inv-photo-detail-nav">
+          <button class="inv-photo-detail-back" @click="invPhotoDetail=null"><svg viewBox="0 0 10 14"><path d="M8 1L2 7l6 6"/></svg>相册</button>
+        </div>
+        <div class="inv-photo-detail-body" v-if="!invPhotoDetail.locked||invPhotoUnlocked">
+          <div class="inv-photo-detail-icon">📷</div>
+          <div class="inv-photo-detail-title">{{ invPhotoDetail.title }}</div>
+          <div class="inv-photo-detail-desc">{{ invPhotoDetail.detail }}</div>
+        </div>
+        <div class="inv-photo-detail-body inv-photo-detail-locked" v-else>
+          <div style="font-size:40px">🔒</div>
+          <div style="font-size:14px;color:rgba(255,255,255,.5)">私密相册需要密码</div>
+          <input class="inv-photo-detail-unlock-input" v-model="invPhotoPassword" type="password" placeholder="输入密码" @keydown.enter="invUnlockPhoto">
+          <button class="inv-photo-detail-unlock-btn" @click="invUnlockPhoto">解锁</button>
+          <div v-if="invPhotoErr" style="font-size:11px;color:#ff6666">{{ invPhotoErr }}</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</transition>
+
+
+<!-- ════ 盲盒 ════ -->
+<transition name="slide">
+<div class="bb-view" v-if="pg==='blindbox'">
+  <div class="bb-nav">
+    <button class="bb-back" @click="go('home')"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+    <div class="bb-title">✦ 每日盲盒 ✦</div>
+    <button class="bb-shelf-btn" @click="bbShowShelf=true"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>展品架</button>
+  </div>
+  <div class="bb-body">
+    <!-- 售货机 -->
+    <div class="bb-machine" v-if="!bbDialogActive&&!bbFanficActive">
+      <div class="bb-machine-top"><div class="bb-machine-brand">GACHA BOX</div><div class="bb-machine-sub">DAILY · MYSTERY · GIFT</div></div>
+      <div class="bb-machine-window">
+        <div class="bb-window-glow"></div>
+        <div class="bb-box-display">
+          <div class="bb-box-icon">{{ bbTodayItem?bbTodayItem.icon:'🎁' }}</div>
+          <div class="bb-box-name" v-if="bbTodayItem">{{ bbTodayItem.name }}</div>
+          <div class="bb-box-name" style="color:rgba(255,255,255,.3)" v-else>今日神秘礼物</div>
+          <div class="bb-box-rarity" :class="bbTodayItem?bbTodayItem.rarity:'N'" v-if="bbTodayItem">{{ bbTodayItem.rarity }}</div>
+        </div>
+      </div>
+      <div class="bb-machine-slots">
+        <div class="bb-slot" v-for="(item,i) in bbShelfItems.slice(0,8)" :key="i" :class="{has:!!item}"><span v-if="item">{{ item.icon }}</span><span v-else style="color:rgba(180,100,255,.2);font-size:10px">·</span></div>
+      </div>
+      <div class="bb-machine-bottom">
+        <div class="bb-timer" v-if="bbUsedToday">下次刷新：{{ bbNextResetTimer }}</div>
+        <div class="bb-timer" v-else>今日盲盒可抽取</div>
+        <button class="bb-draw-btn" :class="bbUsedToday?'used':'ready'" @click="bbDraw" :disabled="bbUsedToday">{{ bbUsedToday?'今日已抽取':'✦ 抽取盲盒 ✦' }}</button>
+      </div>
+    </div>
+
+    <!-- 开箱动画 -->
+    <div class="bb-open-overlay" v-if="bbOpenAnim">
+      <div class="bb-open-box">{{ bbTodayItem&&bbTodayItem.icon }}</div>
+      <div class="bb-open-item-name">{{ bbTodayItem&&bbTodayItem.name }}</div>
+      <div class="bb-open-rarity" :class="bbTodayItem&&bbTodayItem.rarity" v-if="bbTodayItem">{{ bbTodayItem.rarity }} 稀有度</div>
+      <div class="bb-open-desc">{{ bbTodayItem&&bbTodayItem.desc }}</div>
+      <button class="bb-open-next" @click="bbStartDialog">送给角色 →</button>
+    </div>
+  </div>
+
+  <!-- 互动对话 -->
+  <div class="bb-dialog" v-if="bbDialogActive">
+    <div class="bb-dialog-nav">
+      <div class="bb-dialog-av"><img v-if="bbDialogChar&&bbDialogChar.avatarImg" :src="bbDialogChar.avatarImg"><span v-else>{{ bbDialogChar&&(bbDialogChar.emoji||'🌿') }}</span></div>
+      <div class="bb-dialog-name">{{ bbDialogChar&&bbDialogChar.name }}</div>
+      <div class="bb-dialog-step">{{ bbDialogStep }}/5</div>
+    </div>
+    <div class="bb-dialog-msgs" ref="bbDialogMsgs">
+      <div class="bb-dmsg" v-for="(msg,i) in bbDialogHistory" :key="i" :class="msg.role==='user'?'me':'them'">
+        <div class="bb-dmsg-av" v-if="msg.role!=='user'"><img v-if="bbDialogChar&&bbDialogChar.avatarImg" :src="bbDialogChar.avatarImg"><span v-else>{{ bbDialogChar&&(bbDialogChar.emoji||'🌿') }}</span></div>
+        <div class="bb-dmsg-av" v-else><img v-if="userProfile.avatarImg" :src="userProfile.avatarImg"><span v-else>🧑</span></div>
+        <div class="bb-dmsg-bubble">{{ msg.content }}</div>
+      </div>
+      <div class="bb-dmsg them" v-if="bbDialogTyping">
+        <div class="bb-dmsg-av"><img v-if="bbDialogChar&&bbDialogChar.avatarImg" :src="bbDialogChar.avatarImg"><span v-else>{{ bbDialogChar&&(bbDialogChar.emoji||'🌿') }}</span></div>
+        <div class="bb-dmsg-bubble"><div class="dots" style="display:flex;gap:4px"><s style="background:#bbb;width:6px;height:6px;border-radius:50%;display:block;animation:bnc 1.2s infinite"></s><s style="background:#bbb;width:6px;height:6px;border-radius:50%;display:block;animation:bnc 1.2s .2s infinite"></s><s style="background:#bbb;width:6px;height:6px;border-radius:50%;display:block;animation:bnc 1.2s .4s infinite"></s></div></div>
+      </div>
+      <div ref="bbDialogAnchor"></div>
+    </div>
+    <div class="bb-choices" v-if="bbChoices.length>0&&!bbDialogTyping">
+      <div class="bb-choice" v-for="(c,i) in bbChoices" :key="i" @click="bbPickChoice(c)">{{ c }}</div>
+    </div>
+  </div>
+
+  <!-- 同人文 -->
+  <div class="bb-fanfic-view" v-if="bbFanficActive">
+    <div class="bb-fanfic-nav"><button class="bb-fanfic-back" @click="bbFanficActive=false;go('blindbox')"><svg viewBox="0 0 10 14"><path d="M8 1L2 7l6 6"/></svg></button><div class="bb-fanfic-title">{{ bbDialogChar&&bbDialogChar.name }} × {{ userProfile.name||'你' }}</div></div>
+    <div class="bb-fanfic-body">
+      <div class="bb-fanfic-item-banner" v-if="bbTodayItem"><div class="bb-fanfic-item-icon">{{ bbTodayItem.icon }}</div><div><div class="bb-fanfic-item-name">{{ bbTodayItem.name }}</div><div class="bb-fanfic-item-rarity">{{ bbTodayItem.rarity }}</div></div></div>
+      <div class="bb-fanfic-progress" v-if="bbFanficGenerating"><div class="bb-fanfic-progress-fill" :style="{width:bbFanficProgress+'%'}"></div></div>
+      <div class="bb-fanfic-generating" v-if="bbFanficGenerating">正在生成同人文…</div>
+      <div class="bb-fanfic-text" v-else>{{ bbFanficText }}</div>
+    </div>
+  </div>
+
+  <!-- 展品架 -->
+  <div class="bb-shelf-view" v-if="bbShowShelf">
+    <div class="bb-shelf-nav"><button class="bb-shelf-back" @click="bbShowShelf=false"><svg viewBox="0 0 10 14"><path d="M8 1L2 7l6 6"/></svg></button><div class="bb-shelf-title">展品架 · {{ bbShelfItems.length }}件</div></div>
+    <div class="bb-shelf-body">
+      <div class="bb-shelf-empty" v-if="bbShelfItems.length===0">🗄️<br>还没有收藏品<br>抽取盲盒后会出现在这里</div>
+      <div class="bb-shelf-item" v-for="(item,i) in bbShelfItems" :key="i" @click="bbViewShelfItem(item)">
+        <div class="bb-shelf-item-icon">{{ item.icon }}</div>
+        <div class="bb-shelf-item-info"><div class="bb-shelf-item-name">{{ item.name }}</div><div class="bb-shelf-item-meta">{{ item.rarity }} · {{ item.date }} · 赠予 {{ item.charName }}</div></div>
+        <div class="bb-shelf-item-arrow">›</div>
+      </div>
+    </div>
+    <!-- 展品详情/同人文 -->
+    <div class="bb-fanfic-view" v-if="bbShelfDetailItem" style="z-index:40">
+      <div class="bb-fanfic-nav"><button class="bb-fanfic-back" @click="bbShelfDetailItem=null"><svg viewBox="0 0 10 14"><path d="M8 1L2 7l6 6"/></svg></button><div class="bb-fanfic-title">{{ bbShelfDetailItem.charName }} × {{ userProfile.name||'你' }}</div></div>
+      <div class="bb-fanfic-body">
+        <div class="bb-fanfic-item-banner"><div class="bb-fanfic-item-icon">{{ bbShelfDetailItem.icon }}</div><div><div class="bb-fanfic-item-name">{{ bbShelfDetailItem.name }}</div><div class="bb-fanfic-item-rarity">{{ bbShelfDetailItem.rarity }} · {{ bbShelfDetailItem.date }}</div></div></div>
+        <div class="bb-fanfic-text">{{ bbShelfDetailItem.fanfic||'暂无同人文' }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+</transition>
+
+<!-- ════ 群聊列表 ════ -->
+<transition name="slide">
+<div class="gc-view" v-if="pg==='groupchat'">
+  <div class="sb dark"><span>{{ T }}</span><div class="sb-r"><div class="sig"><i></i><i></i><i></i><i></i></div><span style="font-size:10px">▲</span><div class="bat"><div class="bat-f" style="background:var(--sage)"></div></div></div></div>
+  <div class="gc-list-nav">
+    <button class="gc-list-back" @click="go('contacts')"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+    <div class="gc-list-title">群聊</div>
+    <button class="gc-list-add" @click="gcShowCreate=true"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+  </div>
+  <div class="gc-list">
+    <div v-if="groups.length===0" style="text-align:center;padding:60px;font-size:13px;color:#ccc;line-height:2.5">👥<br>还没有群聊<br>点右上角创建</div>
+    <div class="gc-item" v-for="g in groups" :key="g.id" @click="gcOpen(g)">
+      <div class="gc-item-av-grid" v-if="gcAvatars(g).length>1">
+        <span v-for="(av,ai) in gcAvatars(g).slice(0,4)" :key="ai">{{ av.emoji||'🌿' }}</span>
+      </div>
+      <div class="gc-item-av" v-else>{{ gcAvatars(g)[0]&&gcAvatars(g)[0].emoji||'👥' }}</div>
+      <div class="gc-item-info">
+        <div class="gc-item-name">{{ g.name }}</div>
+        <div class="gc-item-prev">{{ g.memberIds.length }}人 · {{ g.lastMsg||'点击进入群聊' }}</div>
+      </div>
+      <div class="gc-item-meta">{{ g.lastTime||'' }}</div>
+    </div>
+  </div>
+
+  <!-- 群聊聊天界面 -->
+  <div class="gc-chat" v-if="gcActiveGroup">
+    <div class="gc-nav">
+      <button class="gc-nav-back" @click="gcActiveGroup=null"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+      <div class="gc-nav-av-grid" v-if="gcAvatars(gcActiveGroup).length>1">
+        <span v-for="(av,ai) in gcAvatars(gcActiveGroup).slice(0,4)" :key="ai">{{ av.emoji||'🌿' }}</span>
+      </div>
+      <div class="gc-nav-av" v-else-if="gcActiveGroup.avatarImg"><img :src="gcActiveGroup.avatarImg"></div>
+      <div class="gc-nav-av" v-else>{{ gcAvatars(gcActiveGroup)[0]&&gcAvatars(gcActiveGroup)[0].emoji||'👥' }}</div>
+      <div class="gc-nav-name">{{ gcActiveGroup.name }}</div>
+      <button class="gc-nav-menu" @click.stop="gcShowSettings=true"><div class="gc-nav-menu-line"></div><div class="gc-nav-menu-line"></div><div class="gc-nav-menu-line"></div></button>
+    </div>
+    <div class="gc-msgs" ref="gcMsgBox" @click="gcShowEmojiPanel=false">
+      <template v-for="(m,i) in gcCurMsgs" :key="i">
+        <div style="text-align:center;font-size:11px;color:#bbb;padding:6px 0" v-if="i===0||(gcCurMsgs[i-1]&&m.time!==gcCurMsgs[i-1].time)">{{ m.time }}</div>
+        <div class="gc-msg-row" :class="m.charId==='user'?'me':''">
+          <div class="gc-msg-av" v-if="m.charId!=='user'" @click="triggerWhisper(m.charId)" style="cursor:pointer">
+            <img v-if="gcGetChar(m.charId)&&gcGetChar(m.charId).avatarImg" :src="gcGetChar(m.charId).avatarImg">
+            <span v-else>{{ gcGetChar(m.charId)&&gcGetChar(m.charId).emoji||'🌿' }}</span>
+          </div>
+          <div class="gc-msg-av" v-else>
+            <img v-if="userProfile.avatarImg" :src="userProfile.avatarImg">
+            <span v-else>🧑</span>
+          </div>
+          <div class="gc-msg-body">
+            <div class="gc-msg-name" v-if="m.charId!=='user'">{{ gcGetChar(m.charId)&&gcGetChar(m.charId).name||'未知' }}</div>
+            <div class="gc-msg-bub" :class="{retracted:m.retracted}"
+              @touchstart.passive="gcLongpressStart($event,m,i)"
+              @touchend.passive="gcLongpressEnd"
+              @touchmove.passive="gcLongpressEnd"
+              @contextmenu.prevent="gcShowMenu($event,m,i)">
+              {{ m.retracted?'消息已撤回':m.content }}
+            </div>
+            <div class="gc-msg-trans" v-if="!m.retracted&&m.translation&&gcShowTrans">{{ m.translation }}</div>
+            <div class="gc-msg-tick" :class="{read:true}" v-if="m.charId==='user'&&!m.retracted">✓✓</div>
+          </div>
+        </div>
+      </template>
+      <div class="gc-msg-row" v-if="gcTyping">
+        <div class="gc-msg-av"><span>💬</span></div>
+        <div class="gc-msg-body"><div class="gc-msg-bub"><div class="dots" style="display:flex;gap:4px"><s style="background:#bbb;width:6px;height:6px;border-radius:50%;display:block;animation:bnc 1.2s infinite"></s><s style="background:#bbb;width:6px;height:6px;border-radius:50%;display:block;animation:bnc 1.2s .2s infinite"></s><s style="background:#bbb;width:6px;height:6px;border-radius:50%;display:block;animation:bnc 1.2s .4s infinite"></s></div></div></div>
+      </div>
+      <div ref="gcAnchor"></div>
+    </div>
+
+    <!-- 长按菜单 -->
+    <div v-if="gcActionMenu" class="msg-action-menu" :style="{position:'fixed',top:gcActionMenu.y+'px',left:gcActionMenu.x+'px'}" @click.stop>
+      <div class="msg-action-item" @click="gcRetract(gcActionMenu.msg,gcActionMenu.idx)"><svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>撤回</div>
+      <div class="msg-action-item danger" @click="gcDelete(gcActionMenu.idx)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>删除</div>
+      <div class="msg-action-item" @click="gcActionMenu=null"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>取消</div>
+    </div>
+
+    <div class="gc-ibar" @click.stop>
+      <div class="gc-ibar-row">
+        <button class="gc-btn emoji" @click.stop="gcShowEmojiPanel=!gcShowEmojiPanel"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></button>
+        <div class="gc-input" contenteditable="true" ref="gcInputEl" data-placeholder="说点什么…" @input="gcOnInput" @keydown.enter.exact.prevent="gcSend"></div>
+        <button class="gc-btn ai" @click.stop="gcTriggerAI" :disabled="gcTyping" title="催AI发言"><svg viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="gc-btn send" :disabled="!gcHasInput||gcTyping" @click.stop="gcSend"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+      </div>
+    </div>
+
+    <div class="emoji-panel" v-if="gcShowEmojiPanel" @click.stop>
+      <div class="emoji-panel-tabs">
+        <div class="emoji-panel-tab on">表情</div>
+      </div>
+      <div class="emoji-panel-body">
+        <div class="emoji-grid">
+          <div class="emoji-item" v-for="e in emojis" :key="e" @click="gcInsertEmoji(e)">{{ e }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 群聊设置 -->
+    <div class="gc-settings" v-if="gcShowSettings">
+      <div class="gc-settings-nav">
+        <button class="gc-settings-back" @click="gcShowSettings=false"><svg viewBox="0 0 10 14"><path d="M8 1L2 7l6 6"/></svg></button>
+        <div class="gc-settings-title">群聊设置</div>
+      </div>
+      <div class="gc-settings-body">
+        <div class="gc-settings-section">
+          <div class="gc-settings-row">
+            <div class="gc-settings-label">群名</div>
+            <input class="gc-settings-input" v-model="gcActiveGroup.name" placeholder="输入群名">
+          </div>
+          <div class="gc-settings-row" @click="$refs.gcAvatarInput.click()">
+            <div class="gc-settings-label">群头像</div>
+            <div class="gc-settings-val">点击更换</div>
+            <input type="file" accept="image/*" ref="gcAvatarInput" style="display:none" @change="gcUploadAvatar">
+          </div>
+          <div class="gc-settings-row">
+            <div class="gc-settings-label">翻译</div>
+            <div class="toggle" :class="gcShowTrans?'on':'off'" @click="gcShowTrans=!gcShowTrans"><div class="toggle-dot"></div></div>
+          </div>
+        </div>
+        <div class="gc-settings-section">
+          <div style="padding:10px 14px 6px;font-size:11px;color:var(--text-soft)">群成员</div>
+          <div class="gc-members-grid">
+            <div v-for="mid in gcActiveGroup.memberIds" :key="mid" style="display:flex;flex-direction:column;align-items:center;gap:4px">
+              <div class="gc-member-av" v-if="mid==='user'"><img v-if="userProfile.avatarImg" :src="userProfile.avatarImg"><span v-else>🧑</span></div>
+              <div class="gc-member-av" v-else><img v-if="gcGetChar(mid)&&gcGetChar(mid).avatarImg" :src="gcGetChar(mid).avatarImg"><span v-else>{{ gcGetChar(mid)&&gcGetChar(mid).emoji||'🌿' }}</span></div>
+              <div class="gc-member-name">{{ mid==='user'?(userProfile.name||'我'):gcGetChar(mid)&&gcGetChar(mid).name }}</div>
+            </div>
+          </div>
+        </div>
+        <button class="gc-danger-btn" @click="gcDisband">解散群聊</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 建群弹窗 -->
+  <div class="gc-create-mask" v-if="gcShowCreate" @click.self="gcShowCreate=false">
+    <div class="gc-create-sheet" @click.stop>
+      <div class="gc-create-handle"></div>
+      <div class="gc-create-title">创建群聊</div>
+      <div class="gc-create-body">
+        <div class="gc-create-field">
+          <div class="gc-create-label">群名</div>
+          <input class="gc-create-input" v-model="gcNewName" placeholder="输入群名">
+        </div>
+        <div class="gc-create-field">
+          <div class="gc-create-label">选择角色</div>
+          <div class="gc-char-sel">
+            <div class="gc-char-sel-item" v-for="c in chars" :key="c.id" :class="{on:gcNewMembers.includes(c.id)}" @click="gcToggleMember(c.id)">
+              <div class="gc-char-sel-av"><img v-if="c.avatarImg" :src="c.avatarImg"><span v-else>{{ c.emoji||'🌿' }}</span></div>
+              <div class="gc-char-sel-name">{{ c.name }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="gc-with-user-toggle">
+          <div style="font-size:13px;color:var(--text)">加入我自己</div>
+          <div class="toggle" :class="gcNewWithUser?'on':'off'" @click="gcNewWithUser=!gcNewWithUser"><div class="toggle-dot"></div></div>
+        </div>
+      </div>
+      <div class="gc-create-actions">
+        <button class="gc-create-btn ok" @click="gcCreate">创建</button>
+        <button class="gc-create-btn cancel" @click="gcShowCreate=false">取消</button>
+      </div>
+    </div>
+  </div>
+</div>
+</transition>
+
+<!-- ════ 匿名信箱 ════ -->
+<transition name="slide">
+<div class="mb-view" v-if="pg==='mailbox'">
+  <div class="sb dark" style="background:rgba(90,74,32,.9)"><span>{{ T }}</span><div class="sb-r"><div class="sig"><i></i><i></i><i></i><i></i></div><span style="font-size:10px">▲</span><div class="bat"><div class="bat-f" style="background:#c8b46a"></div></div></div></div>
+  <div class="mb-nav">
+    <button class="mb-back" @click="go('home')"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+    <div class="mb-title">匿名信箱</div>
+    <button class="mb-refresh" @click="mbGenerateCharLetters" :disabled="mbGenerating"><svg viewBox="0 0 24 24" :style="{animation:mbGenerating?'spin 1s linear infinite':''}"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+  </div>
+  <div class="mb-tabs">
+    <div class="mb-tab" :class="{on:mbTab==='char'}" @click="mbTab='char'">角色信箱</div>
+    <div class="mb-tab" :class="{on:mbTab==='user'}" @click="mbTab='user'">我的信箱</div>
+  </div>
+
+  <!-- 角色信箱 -->
+  <template v-if="mbTab==='char'">
+    <div class="mb-char-tabs">
+      <div class="mb-char-tab" v-for="c in chars" :key="c.id" :class="{on:mbCharId===c.id}" @click="mbCharId=c.id">{{ c.name }}</div>
+    </div>
+    <div class="mb-list">
+      <div style="text-align:center;padding:40px;font-size:13px;color:#bbb" v-if="mbGenerating">生成中…</div>
+      <template v-else>
+        <div class="mb-letter" v-for="(letter,li) in mbCharLetters" :key="li">
+          <div class="mb-letter-header">
+            <div class="mb-letter-av">✉️</div>
+            <div><div class="mb-letter-from">匿名用户</div><div class="mb-letter-time">{{ letter.time }}</div></div>
+            <div class="mb-letter-to">投递给 {{ getCharName(mbCharId) }}</div>
+          </div>
+          <div class="mb-letter-body">
+            <div class="mb-letter-q">{{ letter.question }}</div>
+            <div class="mb-letter-reply" v-if="letter.reply">
+              <div class="mb-letter-reply-label">{{ getCharName(mbCharId) }} 的回答</div>
+              <div class="mb-letter-reply-text">{{ letter.reply }}</div>
+            </div>
+            <div v-else style="padding:8px 2px;font-size:12px;color:#bbb;font-style:italic">暂无回答</div>
+          </div>
+        </div>
+        <div class="mb-empty" v-if="mbCharLetters.length===0">📮<br>还没有来信<br>点右上角刷新生成</div>
+      </template>
+    </div>
+  </template>
+
+  <!-- 我的信箱 -->
+  <template v-if="mbTab==='user'">
+    <div class="mb-list">
+      <div class="mb-letter" v-for="(letter,li) in mbUserLetters" :key="li">
+        <div class="mb-letter-header">
+          <div class="mb-letter-av">📨</div>
+          <div><div class="mb-letter-from">匿名用户</div><div class="mb-letter-time">{{ letter.time }}</div></div>
+        </div>
+        <div class="mb-letter-body">
+          <div class="mb-letter-q">{{ letter.question }}</div>
+          <div class="mb-letter-reply" v-if="letter.userReply">
+            <div class="mb-letter-reply-label">我的回答</div>
+            <div class="mb-letter-reply-text">{{ letter.userReply }}</div>
+            <div class="mb-letter-reply" style="margin-top:8px" v-if="letter.charResponse">
+              <div class="mb-letter-reply-label">神秘回应</div>
+              <div class="mb-letter-reply-text">{{ letter.charResponse }}</div>
+            </div>
+          </div>
+          <div v-else>
+            <div class="mb-reply-input-row">
+              <textarea class="mb-reply-input" v-model="letter.inputText" placeholder="写下你的回答…" rows="2"></textarea>
+              <button class="mb-reply-btn" @click="mbUserReply(letter,li)" :disabled="letter.replying">{{ letter.replying?'…':'回答' }}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mb-empty" v-if="mbUserLetters.length===0">📬<br>还没有人给你写信<br>角色会匿名向你提问</div>
+    </div>
+  </template>
+
+  <button class="mb-fab" @click="mbShowWrite=true" v-if="mbTab==='char'">
+    <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+  </button>
+
+  <!-- 写信弹窗 -->
+  <div class="mb-write-mask" v-if="mbShowWrite" @click.self="mbShowWrite=false">
+    <div class="mb-write-sheet" @click.stop>
+      <div class="mb-write-handle"></div>
+      <div class="mb-write-title">匿名写信给 {{ getCharName(mbCharId) }}</div>
+      <div class="mb-write-body">
+        <div class="mb-write-field">
+          <div class="mb-write-label">你想问什么</div>
+          <textarea class="mb-write-input" v-model="mbNewQuestion" placeholder="匿名提问，角色不知道是谁写的…" rows="4"></textarea>
+        </div>
+      </div>
+      <div class="mb-write-actions">
+        <button class="mb-write-btn ok" @click="mbSubmitQuestion">投递</button>
+        <button class="mb-write-btn cancel" @click="mbShowWrite=false">取消</button>
+      </div>
+    </div>
+  </div>
+</div>
+</transition>
+
+<!-- 添加行程弹窗 -->
+<div class="mask" v-if="calShowAddEvent" @click.self="calShowAddEvent=false">
+  <div class="sheet">
+    <div class="sh"></div>
+    <div class="stitle">添加行程</div>
+    <div class="sg">
+      <div class="sr"><div class="sl">事件名称</div><input class="si" v-model="calNewEvent.title" placeholder="例：期末考试、生理期、健身…"/></div>
+      <div class="sr"><div class="sl">时间（可选）</div><input class="si" v-model="calNewEvent.time" placeholder="例：09:00 或 上午"/></div>
+      <div class="sr"><div class="sl">备注（可选）</div><input class="si" v-model="calNewEvent.note" placeholder="补充说明…"/></div>
+      <div class="sr">
+        <div class="sl">颜色标记</div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <div v-for="col in calEventColors" :key="col"
+            @click="calNewEvent.color=col"
+            style="width:26px;height:26px;border-radius:50%;cursor:pointer;transition:transform .1s"
+            :style="{background:col,transform:calNewEvent.color===col?'scale(1.25)':'scale(1)',boxShadow:calNewEvent.color===col?'0 0 0 2px #fff,0 0 0 4px '+col:'none'}">
+          </div>
+        </div>
+      </div>
+      <div class="sr">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="sl" style="font-size:14px;color:var(--text)">提前通知角色</div>
+          <div class="toggle" :class="calNewEvent.notifyChar?'on':'off'" @click="calNewEvent.notifyChar=!calNewEvent.notifyChar"><div class="toggle-dot"></div></div>
+        </div>
+        <div class="sl" style="margin-top:4px" v-if="calNewEvent.notifyChar">角色会在聊天中自然提及此行程</div>
+      </div>
+    </div>
+    <button class="mb ok" @click="calAddEvent">添加</button>
+    <button class="mb no" @click="calShowAddEvent=false">取消</button>
+  </div>
+</div>
+
+<!-- 设置弹窗 -->
+<div class="mask" v-if="showSt" @click.self="showSt=false">
+  <div class="sheet">
+    <div class="sh"></div><div class="stitle">设置</div>
+    <div class="ssec">API 配置</div>
+    <div class="sg">
+      <div class="sr"><div class="sl">API 地址</div><input class="si" v-model="api.url" placeholder="https://你的中转站.com/v1"/></div>
+      <div class="sr"><div class="sl">API Key</div><input class="si" v-model="api.key" type="password" placeholder="sk-..."/></div>
+      <div class="sr">
+        <div class="sl">模型</div>
+        <input class="si" v-model="api.model" placeholder="手动输入或点击下方拉取"/>
+        <button class="mb ok" style="margin-top:8px" @click="fetchModels" :disabled="fetchingModels">{{ fetchingModels?'拉取中…':'拉取模型' }}</button>
+        <div class="model-list" v-if="modelList.length>0">
+          <div class="model-item" v-for="m in modelList" :key="m" :class="{selected:api.model===m}" @click="api.model=m">{{ m }}<svg v-if="api.model===m" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+      </div>
+    </div>
+    <div class="ssec">MiniMax 语音</div>
+    <div class="sg">
+      <div class="sr"><div class="sl">MiniMax API Key</div><input class="si" v-model="api.minimaxKey" type="password" placeholder="minimax key"/></div>
+      <div class="sr"><div class="sl">Group ID</div><input class="si" v-model="api.minimaxGroup" placeholder="group_id"/></div>
+    </div>
+    <div class="ssec">天气</div>
+    <div class="sg">
+      <div class="sr">
+        <div class="sl">城市</div>
+        <input class="si" v-model="api.city" placeholder="例如：北京、上海、广州"/>
+        <button class="mb ok" style="margin-top:8px" @click="fetchWeather" :disabled="weatherLoading">{{ weatherLoading?'获取中…':'刷新天气' }}</button>
+        <div v-if="weatherDesc!=='点击刷新'" style="margin-top:8px;font-size:12px;color:var(--text-soft);padding:0 2px">当前：{{ weatherTemp }} {{ weatherDesc }}</div>
+      </div>
+    </div>
+    <div class="ssec">存档</div>
+    <div class="sg">
+      <div class="sr" style="flex-direction:row;gap:10px">
+        <button class="mb ok" style="flex:1;margin:0" @click="exportData">导出存档</button>
+        <button class="mb ok" style="flex:1;margin:0;background:var(--sage-mid)" @click="$refs.importInput.click()">导入存档<input type="file" accept=".json" ref="importInput" style="display:none" @change="importData"></button>
+      </div>
+    </div>
+    <div class="ssec">显示</div>
+    <div class="sg">
+      <div class="sr" style="flex-direction:row;align-items:center;justify-content:space-between">
+        <div class="sl" style="font-size:14px;color:var(--text);margin:0">全屏模式</div>
+        <button class="mb ok sm" style="margin:0;flex-shrink:0" @click="toggleFullscreen">{{ isFullscreen?'退出全屏':'进入全屏' }}</button>
+      </div>
+    </div>
+    <div class="ssec">壁纸</div>
+    <div class="wpg">
+      <div class="wpi" v-for="w in preWP" :key="w.id" :style="{backgroundImage:'url('+w.url+')'}" :class="{on:wall===w.url}" @click="setWP(w.url)"><div class="wpi-l">{{ w.name }}</div></div>
+      <div class="wpu" @click="$refs.wpf.click()"><span style="font-size:24px">＋</span><span>自定义</span><input type="file" accept="image/*" ref="wpf" style="display:none" @change="upWP"></div>
+    </div>
+    <button class="mb ok" @click="saveSt">保存</button>
+    <button class="mb no" @click="showSt=false">取消</button>
+  </div>
+</div>
+
+<!-- 添加/编辑角色 -->
+<div class="mask" v-if="showAdd||showEditChar" @click.self="showAdd=false;showEditChar=false">
+  <div class="sheet">
+    <div class="sh"></div><div class="stitle">{{ showEditChar?'编辑角色':'创建角色' }}</div>
+    <div class="sg">
+      <div class="sr">
+        <div class="sl">头像</div>
+        <div class="av-picker">
+          <div class="av-preview" @click="$refs.avInput.click()"><img v-if="nc.avatarImg" :src="nc.avatarImg"><span v-else>{{ nc.emoji||'🌿' }}</span></div>
+          <div class="av-upload-btn" @click="$refs.avInput.click()">点击上传头像图片</div>
+          <input type="file" accept="image/*" ref="avInput" style="display:none" @change="uploadAvatar">
+        </div>
+      </div>
+      <div class="sr"><div class="sl">头像 Emoji（无图片时显示）</div><input class="si" v-model="nc.emoji" placeholder="🌿" maxlength="2"/></div>
+    </div>
+    <div class="ssec">基本信息</div>
+    <div class="sg">
+      <div class="sr"><div class="sl">备注名</div><input class="si" v-model="nc.name" placeholder="显示名称"/></div>
+      <div class="sr"><div class="sl">真名</div><input class="si" v-model="nc.realName" placeholder="角色真实姓名"/></div>
+      <div class="sr"><div class="sl">生日</div><input class="si" v-model="nc.birthday" placeholder="1990-06-15"/></div>
+      <div class="sr"><div class="sl">身份</div><input class="si" v-model="nc.identity" placeholder="特种兵 / 侦探 / 医生…"/></div>
+      <div class="sr"><div class="sl">与你的关系</div><input class="si" v-model="nc.relation" placeholder="战友 / 恋人 / 挚友…"/></div>
+    </div>
+    <div class="ssec">角色设定</div>
+    <div class="sg">
+      <div class="sr"><div class="sl">System Prompt</div><textarea class="si" v-model="nc.system" placeholder="描述角色的性格、背景、说话风格……" rows="6" style="resize:vertical"></textarea></div>
+    </div>
+    <button class="mb ok" @click="saveChar">{{ showEditChar?'保存修改':'创建角色' }}</button>
+    <button class="mb no" @click="showAdd=false;showEditChar=false">取消</button>
+  </div>
+</div>
+
+</div></div></div></div>
+
+<script src="app.js"></script>
+</body>
+</html>
