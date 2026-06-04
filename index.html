@@ -1617,7 +1617,7 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
     <div class="wv-tab-pill off">群聊</div>
   </div>
   <div class="cl">
-    <div class="ci" v-for="c in chars" :key="c.id" @click="openChat(c)">
+    <div class="ci" @click="startCall(contact.id)" v-for="c in chars" :key="c.id" @click="openChat(c)">
       <div class="ci-dot" v-if="c.unread>0"></div>
       <div class="ci-av"><img v-if="c.avatarImg" :src="c.avatarImg"><span v-else>{{ c.emoji||'🌿' }}</span></div>
       <div class="ci-info"><div class="ci-name">{{ c.name }}</div><div class="ci-prev">{{ lastMsg(c.id) }}</div></div>
@@ -1658,7 +1658,7 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
   </div>
   <div class="contacts-list-title">我的角色 ({{ chars.length }})</div>
   <div class="contacts-list">
-    <div class="ci" v-for="c in chars" :key="c.id" @click="openChat(c)">
+    <div class="ci" @click="startCall(contact.id)" v-for="c in chars" :key="c.id" @click="openChat(c)">
       <div class="ci-av"><img v-if="c.avatarImg" :src="c.avatarImg"><span v-else>{{ c.emoji||'🌿' }}</span></div>
       <div class="ci-info"><div class="ci-name">{{ c.name }}</div><div class="ci-prev" style="color:var(--text-soft)">{{ c.relation||c.identity||'角色' }}</div></div>
     </div>
