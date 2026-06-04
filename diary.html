@@ -6,9 +6,24 @@
 <title>交换日记</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;min-height:100%;font-family:Georgia,'Noto Serif SC','Songti SC',serif;background:#f0ebe3;color:#4a3f32}
-body{padding-bottom:40px}
-.header{background:#e8e0d0;padding:52px 20px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #d4c9b8;position:sticky;top:0;z-index:20}
+html,body{width:100%;height:100%;font-family:'Noto Sans SC',Georgia,'Songti SC',serif;background:#e8e4d8;overflow:hidden}
+.wrap{width:100%;height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 30% 50%,rgba(80,100,55,.3) 0%,transparent 55%),#1a1e12}
+.shell{width:390px;height:844px;background:#0e120b;border-radius:52px;box-shadow:0 0 0 1.5px #2a3020,0 0 0 4px #111,0 60px 120px rgba(0,0,0,.85);position:relative;overflow:hidden;flex-shrink:0}
+@media(max-height:900px) and (min-width:501px){.shell{zoom:.96}}
+@media(max-height:860px) and (min-width:501px){.shell{zoom:.90}}
+@media(max-height:800px) and (min-width:501px){.shell{zoom:.84}}
+@media(max-height:740px) and (min-width:501px){.shell{zoom:.76}}
+@media(max-height:680px) and (min-width:501px){.shell{zoom:.70}}
+@media(max-width:500px){
+  .wrap{background:#0e120b;padding:0;align-items:flex-start}
+  .shell{width:100vw!important;height:100vh!important;border-radius:0!important;box-shadow:none!important;padding-top:env(safe-area-inset-top,0px)}
+  .header{padding-top:max(52px,calc(env(safe-area-inset-top,0px) + 40px))!important}
+}
+.island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:126px;height:36px;background:#000;border-radius:20px;z-index:999}
+.screen{position:absolute;inset:0;overflow:hidden;border-radius:inherit;background:#f0ebe3;color:#4a3f32}
+.view{position:absolute;inset:0;display:none;flex-direction:column;background:#f0ebe3}
+.view.active{display:flex}
+.header{background:#e8e0d0;padding:52px 20px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #d4c9b8;flex-shrink:0;position:relative;z-index:10}
 .header-left{display:flex;align-items:center;gap:12px;min-width:0}
 .back-btn{font-size:22px;color:#7a6a55;cursor:pointer;padding:4px 8px;line-height:1;user-select:none}
 .header-title{font-size:20px;color:#4a3f32;font-weight:normal;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -16,7 +31,9 @@ body{padding-bottom:40px}
 .add-btn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px}
 .gen-btn{padding:8px 15px;border-radius:20px;font-size:13px;letter-spacing:1px;white-space:nowrap}
 .gen-btn:disabled{background:#b0a090;box-shadow:none}
-.subtitle{text-align:center;color:#9a8a78;font-size:12px;letter-spacing:3px;padding:16px 0 8px;text-transform:uppercase}
+.subtitle{text-align:center;color:#9a8a78;font-size:12px;letter-spacing:3px;padding:16px 0 8px;text-transform:uppercase;flex-shrink:0}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{display:none}
 .books-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}
 .book-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);cursor:pointer;transition:transform .2s;position:relative}
 .book-card:active{transform:scale(.97)}
@@ -28,18 +45,18 @@ body{padding-bottom:40px}
 .book-label{font-size:11px;color:#9a8a78;text-align:center;margin-top:4px;letter-spacing:1px}
 .book-footer{padding:10px 16px;background:#f5ede0;border-top:1px solid #e8ddd0;font-size:11px;color:#9a8a78;text-align:center}
 .empty{text-align:center;color:#9a8a78;padding:60px 20px;font-size:14px;line-height:2;grid-column:1/-1}
-.view{display:none}.view.active{display:block}
 .diary-list{padding:16px;display:flex;flex-direction:column;gap:16px}
 .diary-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.07);cursor:pointer;transition:transform .15s}
 .diary-card:active{transform:scale(.98)}
-.card-header{background:linear-gradient(135deg,#fdf8f0,#f5ede0);padding:16px 20px 12px;border-bottom:1px solid #ede3d5;display:flex;justify-content:space-between;align-items:flex-start}
+.card-header{background:linear-gradient(135deg,#fdf8f0,#f5ede0);padding:16px 20px 12px;border-bottom:1px solid #ede3d5}
 .card-date{font-size:16px;color:#4a3f32;letter-spacing:1px}
 .card-meta{font-size:11px;color:#9a8a78;margin-top:4px}
 .card-preview{padding:14px 20px;font-size:14px;color:#6a5a4a;line-height:1.8;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .empty-state{text-align:center;padding:80px 20px;color:#9a8a78}
 .empty-icon{font-size:48px;margin-bottom:16px}
 .empty-text{font-size:14px;line-height:2}
-.detail-overlay{display:none;position:fixed;inset:0;z-index:100;background:#f5ede0;overflow-y:auto}
+.detail-overlay{display:none;position:absolute;inset:0;z-index:100;background:#f5ede0;overflow-y:auto}
+.detail-overlay::-webkit-scrollbar{display:none}
 .detail-header{background:#e8e0d0;padding:52px 20px 16px;border-bottom:1px solid #d4c9b8;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:2}
 .parchment{margin:20px 16px 40px;background:#fdf8f0;border-radius:8px;padding:28px 24px;box-shadow:0 4px 20px rgba(0,0,0,.1),inset 0 0 60px rgba(200,180,140,.15);position:relative;line-height:2}
 .parchment::before{content:'';position:absolute;inset:0;border-radius:8px;background:repeating-linear-gradient(transparent,transparent 31px,#e8ddd0 31px,#e8ddd0 32px);pointer-events:none}
@@ -47,8 +64,8 @@ body{padding-bottom:40px}
 .detail-meta{font-size:12px;color:#9a8a78;text-align:center;margin-bottom:20px;position:relative;z-index:1}
 .detail-divider{border:none;border-top:1px solid #d4c9b8;margin:16px 0}
 .detail-content{font-size:15px;color:#4a3f32;line-height:2.2;white-space:pre-wrap;position:relative;z-index:1}
-.toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:rgba(74,63,50,.88);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;z-index:999}
-.dialog-mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:200;align-items:center;justify-content:center}
+.toast{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);background:rgba(74,63,50,.88);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;z-index:999}
+.dialog-mask{display:none;position:absolute;inset:0;background:rgba(0,0,0,.42);z-index:200;align-items:center;justify-content:center}
 .dialog-mask.show{display:flex}
 .dialog-box{background:#fdf8f0;border-radius:16px;padding:22px 18px;width:84%;max-width:320px;text-align:center}
 .dialog-title{font-size:16px;color:#4a3f32;margin-bottom:10px}
@@ -58,7 +75,7 @@ body{padding-bottom:40px}
 .dialog-btn-cancel{background:#e8ddd0;color:#7a6a55}
 .dialog-btn-ok{background:#7a6a55;color:#fff}
 .write-box{padding:16px}
-.write-area{width:100%;min-height:280px;border:1px solid #d4c9b8;border-radius:12px;background:#fdf8f0;color:#4a3f32;font-family:Georgia,'Noto Serif SC','Songti SC',serif;font-size:15px;line-height:2;padding:16px;resize:none;outline:none;box-shadow:inset 0 0 40px rgba(200,180,140,.12)}
+.write-area{width:100%;min-height:260px;border:1px solid #d4c9b8;border-radius:12px;background:#fdf8f0;color:#4a3f32;font-family:Georgia,'Noto Serif SC','Songti SC',serif;font-size:15px;line-height:2;padding:16px;resize:none;outline:none;box-shadow:inset 0 0 40px rgba(200,180,140,.12)}
 .write-actions{display:flex;gap:10px;margin-top:12px}
 .write-actions button{flex:1;border:none;border-radius:18px;padding:11px;font-family:inherit;font-size:14px;cursor:pointer}
 .btn-light{background:#e8ddd0;color:#7a6a55}
@@ -66,109 +83,188 @@ body{padding-bottom:40px}
 </style>
 </head>
 <body>
+<div class="wrap">
+  <div class="shell">
+    <div class="island"></div>
+    <div class="screen">
+      <div id="homeView" class="view active">
+        <div class="header">
+          <div class="header-left">
+            <div class="back-btn" onclick="goBack()">←</div>
+            <div class="header-title">交换日记</div>
+          </div>
+          <div class="add-btn" onclick="openUserDiary()">+</div>
+        </div>
+        <div class="subtitle">— Exchange Diary —</div>
+        <div class="scroll"><div class="books-grid" id="booksGrid"><div class="empty">加载中...</div></div></div>
+      </div>
 
-<div id="homeView" class="view active">
-  <div class="header">
-    <div class="header-left">
-      <div class="back-btn" onclick="goBack()">←</div>
-      <div class="header-title">交换日记</div>
+      <div id="aiView" class="view">
+        <div class="header">
+          <div class="header-left">
+            <div class="back-btn" onclick="showHome()">←</div>
+            <div class="header-title" id="aiTitle">的日记</div>
+          </div>
+          <button class="gen-btn" id="genBtn" onclick="generateDiary()">✦ 今日日记</button>
+        </div>
+        <div class="scroll"><div class="diary-list" id="diaryList"></div></div>
+      </div>
+
+      <div id="userView" class="view">
+        <div class="header">
+          <div class="header-left">
+            <div class="back-btn" onclick="showHome()">←</div>
+            <div class="header-title">我的日记</div>
+          </div>
+          <button class="gen-btn" onclick="saveUserDiary()">保存</button>
+        </div>
+        <div class="scroll">
+          <div class="write-box">
+            <textarea id="userDiaryInput" class="write-area" placeholder="今天想写点什么？"></textarea>
+            <div class="write-actions">
+              <button class="btn-light" onclick="clearUserDiaryInput()">清空</button>
+              <button class="btn-dark" onclick="saveUserDiary()">保存今天</button>
+            </div>
+          </div>
+          <div class="diary-list" id="userDiaryList"></div>
+        </div>
+      </div>
+
+      <div class="detail-overlay" id="detailOverlay">
+        <div class="detail-header">
+          <div class="back-btn" onclick="closeDetail()">←</div>
+          <div style="font-size:16px;color:#4a3f32;" id="detailTitle"></div>
+        </div>
+        <div class="parchment">
+          <div class="detail-date" id="detailDate"></div>
+          <div class="detail-meta" id="detailMeta"></div>
+          <hr class="detail-divider">
+          <div class="detail-content" id="detailContent"></div>
+        </div>
+      </div>
+
+      <div class="dialog-mask" id="existsDialog">
+        <div class="dialog-box">
+          <div class="dialog-title">今天已有日记</div>
+          <div class="dialog-msg">今天的日记已经生成了。<br>是否删除重新生成？</div>
+          <div class="dialog-btns">
+            <button class="dialog-btn dialog-btn-cancel" onclick="closeExistsDialog()">取消</button>
+            <button class="dialog-btn dialog-btn-ok" onclick="confirmRegenerate()">重新生成</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast" id="toast"></div>
     </div>
-    <div class="add-btn" onclick="openUserDiary()">+</div>
-  </div>
-  <div class="subtitle">— Exchange Diary —</div>
-  <div class="books-grid" id="booksGrid"><div class="empty">加载中...</div></div>
-</div>
-
-<div id="aiView" class="view">
-  <div class="header">
-    <div class="header-left">
-      <div class="back-btn" onclick="showHome()">←</div>
-      <div class="header-title" id="aiTitle">的日记</div>
-    </div>
-    <button class="gen-btn" id="genBtn" onclick="generateDiary()">✦ 今日日记</button>
-  </div>
-  <div class="diary-list" id="diaryList"></div>
-</div>
-
-<div id="userView" class="view">
-  <div class="header">
-    <div class="header-left">
-      <div class="back-btn" onclick="showHome()">←</div>
-      <div class="header-title">我的日记</div>
-    </div>
-    <button class="gen-btn" onclick="saveUserDiary()">保存</button>
-  </div>
-  <div class="write-box">
-    <textarea id="userDiaryInput" class="write-area" placeholder="今天想写点什么？"></textarea>
-    <div class="write-actions">
-      <button class="btn-light" onclick="clearUserDiaryInput()">清空</button>
-      <button class="btn-dark" onclick="saveUserDiary()">保存今天</button>
-    </div>
-  </div>
-  <div class="diary-list" id="userDiaryList"></div>
-</div>
-
-<div class="detail-overlay" id="detailOverlay">
-  <div class="detail-header">
-    <div class="back-btn" onclick="closeDetail()">←</div>
-    <div style="font-size:16px;color:#4a3f32;" id="detailTitle"></div>
-  </div>
-  <div class="parchment">
-    <div class="detail-date" id="detailDate"></div>
-    <div class="detail-meta" id="detailMeta"></div>
-    <hr class="detail-divider">
-    <div class="detail-content" id="detailContent"></div>
   </div>
 </div>
-
-<div class="dialog-mask" id="existsDialog">
-  <div class="dialog-box">
-    <div class="dialog-title">今天已有日记</div>
-    <div class="dialog-msg">今天的日记已经生成了。<br>是否删除重新生成？</div>
-    <div class="dialog-btns">
-      <button class="dialog-btn dialog-btn-cancel" onclick="closeExistsDialog()">取消</button>
-      <button class="dialog-btn dialog-btn-ok" onclick="confirmRegenerate()">重新生成</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
 
 <script>
 const spineColors=['#c4a882','#a8b4c0','#b8c4a8','#c0a8b8','#c4b8a8','#a8c0bc'];
-let chars=[], currentChar=null, diaries=[];
+let chars=[];
+let currentChar=null;
+let diaries=[];
 
-function safeJson(raw, fallback){try{return JSON.parse(raw)}catch(e){return fallback}}
+function safeJson(raw,fallback){
+  try{return JSON.parse(raw)}
+  catch(e){return fallback}
+}
 function storeGet(k,f){return safeJson(localStorage.getItem(k),f)}
 function storeSet(k,v){localStorage.setItem(k,JSON.stringify(v))}
-function todayStr(){const d=new Date();return d.getFullYear()+'年'+String(d.getMonth()+1).padStart(2,'0')+'月'+String(d.getDate()).padStart(2,'0')+'日'}
+function todayStr(){
+  const d=new Date();
+  return d.getFullYear()+'年'+String(d.getMonth()+1).padStart(2,'0')+'月'+String(d.getDate()).padStart(2,'0')+'日';
+}
 function nowTime(){return Date.now()}
-function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
-
-function goBack(){ window.location.href='index.html' }
-function showOnly(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active')}
-function showHome(){showOnly('homeView');currentChar=null;renderBooks()}
+function esc(s){
+  const d=document.createElement('div');
+  d.textContent=s==null?'':String(s);
+  return d.innerHTML;
+}
+function goBack(){
+  window.location.href='index.html';
+}
+function showOnly(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function normalizeChars(raw){
+  if(!Array.isArray(raw))return [];
+  return raw.filter(Boolean).map((c,i)=>({
+    id:String(c.id||c.userId||('char_'+i)),
+    name:c.name||c.realName||'TA',
+    realName:c.realName||c.name||'TA',
+    avatarImg:c.avatarImg||c.avatar||'',
+    system:c.system||c.identityInfo||c.identity||''
+  }));
+}
+function showHome(){
+  currentChar=null;
+  showOnly('homeView');
+  renderBooks();
+}
 function init(){
-  chars=storeGet('chars',[]);
+  chars=normalizeChars(storeGet('chars',[]));
   renderBooks();
 }
 function renderBooks(){
   const grid=document.getElementById('booksGrid');
-  if(!chars.length){grid.innerHTML='<div class="empty">还没有角色<br>先去添加联系人吧</div>';return}
-  grid.innerHTML=chars.map((c,i)=>{
-    const color=spineColors[i%spineColors.length];
-    const av=c.avatarImg?'<img src="'+esc(c.avatarImg)+'" onerror="this.replaceWith(document.createTextNode(\\'📔\\'))">':'📔';
-    return '<div class="book-card" onclick="openAiDiary(\\''+esc(c.id)+'\\')">'
-      +'<div class="book-spine" style="background:'+color+'"></div>'
-      +'<div class="book-cover"><div class="book-icon">'+av+'</div>'
-      +'<div class="book-name">'+esc(c.realName||c.name||'TA')+'</div><div class="book-label">的日记</div></div>'
-      +'<div class="book-footer">点击翻阅</div></div>';
-  }).join('');
+  if(!chars.length){
+    grid.innerHTML='<div class="empty">还没有角色<br>先去小手机通讯录添加联系人吧</div>';
+    return;
+  }
+  grid.innerHTML='';
+  chars.forEach((c,i)=>{
+    const card=document.createElement('div');
+    card.className='book-card';
+    card.onclick=()=>openAiDiary(c.id);
+
+    const spine=document.createElement('div');
+    spine.className='book-spine';
+    spine.style.background=spineColors[i%spineColors.length];
+
+    const cover=document.createElement('div');
+    cover.className='book-cover';
+
+    const icon=document.createElement('div');
+    icon.className='book-icon';
+    if(c.avatarImg){
+      const img=document.createElement('img');
+      img.src=c.avatarImg;
+      img.onerror=()=>{icon.textContent='📔'};
+      icon.appendChild(img);
+    }else{
+      icon.textContent='📔';
+    }
+
+    const name=document.createElement('div');
+    name.className='book-name';
+    name.textContent=c.realName||c.name||'TA';
+
+    const label=document.createElement('div');
+    label.className='book-label';
+    label.textContent='的日记';
+
+    const footer=document.createElement('div');
+    footer.className='book-footer';
+    footer.textContent='点击翻阅';
+
+    cover.appendChild(icon);
+    cover.appendChild(name);
+    cover.appendChild(label);
+    card.appendChild(spine);
+    card.appendChild(cover);
+    card.appendChild(footer);
+    grid.appendChild(card);
+  });
 }
 
 function openAiDiary(id){
   currentChar=chars.find(c=>String(c.id)===String(id));
-  if(!currentChar){showToast('角色不存在');return}
+  if(!currentChar){
+    showToast('角色不存在');
+    return;
+  }
   document.getElementById('aiTitle').textContent=(currentChar.realName||currentChar.name||'TA')+' 的日记';
   showOnly('aiView');
   loadDiaries();
@@ -176,17 +272,22 @@ function openAiDiary(id){
 function getAllAiDiaries(){return storeGet('aiDiaries',{})}
 function saveAllAiDiaries(data){storeSet('aiDiaries',data)}
 function loadDiaries(){
+  if(!currentChar)return;
   const all=getAllAiDiaries();
-  diaries=(all[currentChar.id]||[]).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+  diaries=(all[currentChar.id]||[]).slice().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
   const list=document.getElementById('diaryList');
   if(!diaries.length){
     list.innerHTML='<div class="empty-state"><div class="empty-icon">📔</div><div class="empty-text">还没有日记<br>点击右上角生成今天的日记</div></div>';
     return;
   }
-  list.innerHTML=diaries.map((d,i)=>'<div class="diary-card" onclick="openDetail('+i+',\\'ai\\')">'
-    +'<div class="card-header"><div><div class="card-date">'+esc(d.date)+'</div>'
-    +'<div class="card-meta">☁ '+esc(d.weather||'晴')+' · 📍 '+esc(d.location||'未知')+'</div></div></div>'
-    +'<div class="card-preview">'+esc((d.content||'').slice(0,120))+'…</div></div>').join('');
+  list.innerHTML='';
+  diaries.forEach((d,i)=>{
+    const card=document.createElement('div');
+    card.className='diary-card';
+    card.onclick=()=>openDetail(i,'ai');
+    card.innerHTML='<div class="card-header"><div><div class="card-date">'+esc(d.date)+'</div><div class="card-meta">☁ '+esc(d.weather||'晴')+' · 📍 '+esc(d.location||'未知')+'</div></div></div><div class="card-preview">'+esc((d.content||'').slice(0,120))+'…</div>';
+    list.appendChild(card);
+  });
 }
 
 async function generateDiary(){
@@ -199,19 +300,22 @@ async function generateDiary(){
     return;
   }
   const btn=document.getElementById('genBtn');
-  btn.disabled=true;btn.textContent='生成中…';
+  btn.disabled=true;
+  btn.textContent='生成中…';
   try{
     const api=storeGet('api',{});
-    if(!api.url||!api.key){throw new Error('请先在设置里填写API地址和密钥')}
+    if(!api.url||!api.key)throw new Error('请先在设置里填写API地址和密钥');
     let url=String(api.url).replace(/\/$/,'');
     if(!url.endsWith('/chat/completions')) url += url.includes('/v1')?'/chat/completions':'/v1/chat/completions';
     const model=api.model||'gpt-4o';
     const msgs=storeGet('msgs',{});
-    const chat=(msgs[currentChar.id]||[]).slice(-20).map(m=>(m.role==='user'?'你':(currentChar.realName||currentChar.name||'TA'))+'：'+(m.content||'')).join('\n');
-    const prev=list.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0))[0]?.summaryForNext||'这是第一篇日记';
-    const weather=(localStorage.getItem('cyberWeather')||'晴').replace(/^"|"$/g,'');
-    const persona=currentChar.system||currentChar.identity||currentChar.relation||'';
     const aiName=currentChar.realName||currentChar.name||'TA';
+    const chat=(msgs[currentChar.id]||[]).slice(-20).map(m=>(m.role==='user'?'你':aiName)+'：'+(m.content||'')).join('\n');
+    const sorted=list.slice().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+    const prev=(sorted[0]&&sorted[0].summaryForNext)||'这是第一篇日记';
+    const weather=(localStorage.getItem('cyberWeather')||'晴').replace(/^"|"$/g,'');
+    const persona=currentChar.system||'';
+
     const prompt=`你是 ${aiName}，请以第一人称写今天的私人日记。
 
 【你的人设】：${persona}
@@ -231,24 +335,47 @@ ${chat || '今天还没有明显聊天记录。'}
 【格式输出】：
 【日记正文】日记内容
 【次日摘要】50字以内的摘要供明天参考`;
-    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+api.key},body:JSON.stringify({model,messages:[{role:'user',content:prompt}],stream:false})});
+
+    const res=await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+api.key},
+      body:JSON.stringify({model:model,messages:[{role:'user',content:prompt}],stream:false})
+    });
     if(!res.ok)throw new Error('API错误: '+res.status);
     const data=await res.json();
-    const raw=(data.choices?.[0]?.message?.content||'').trim();
-    const body=(raw.match(/【日记正文】([\s\S]*?)(?=【次日摘要】|$)/)||[])[1]?.trim() || raw;
-    const summary=(raw.match(/【次日摘要】([\s\S]*)$/)||[])[1]?.trim() || '';
+    const raw=((data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'').trim();
+    const bodyMatch=raw.match(/【日记正文】([\s\S]*?)(?=【次日摘要】|$)/);
+    const summaryMatch=raw.match(/【次日摘要】([\s\S]*)$/);
+    const body=(bodyMatch&&bodyMatch[1]?bodyMatch[1].trim():raw);
+    const summary=(summaryMatch&&summaryMatch[1]?summaryMatch[1].trim():'');
     if(!body)throw new Error('生成内容为空');
     const item={id:nowTime(),date:today,weather:weather||'晴',location:'未知',content:body,summaryForNext:summary,timestamp:nowTime()};
     const next=(all[currentChar.id]||[]).filter(d=>d.date!==today);
-    next.unshift(item); all[currentChar.id]=next; saveAllAiDiaries(all);
-    loadDiaries(); showToast('日记生成成功');
-  }catch(e){showToast(e.message||'生成失败，请重试')}
-  finally{resetGenBtn()}
+    next.unshift(item);
+    all[currentChar.id]=next;
+    saveAllAiDiaries(all);
+    loadDiaries();
+    showToast('日记生成成功');
+  }catch(e){
+    showToast(e.message||'生成失败，请重试');
+  }finally{
+    resetGenBtn();
+  }
 }
-function resetGenBtn(){const btn=document.getElementById('genBtn');btn.disabled=false;btn.textContent='✦ 今日日记'}
-function showTodayExistsDialog(){document.getElementById('existsDialog').classList.add('show');resetGenBtn()}
-function closeExistsDialog(){document.getElementById('existsDialog').classList.remove('show')}
+function resetGenBtn(){
+  const btn=document.getElementById('genBtn');
+  btn.disabled=false;
+  btn.textContent='✦ 今日日记';
+}
+function showTodayExistsDialog(){
+  document.getElementById('existsDialog').classList.add('show');
+  resetGenBtn();
+}
+function closeExistsDialog(){
+  document.getElementById('existsDialog').classList.remove('show');
+}
 function confirmRegenerate(){
+  if(!currentChar)return;
   closeExistsDialog();
   const all=getAllAiDiaries();
   all[currentChar.id]=(all[currentChar.id]||[]).filter(d=>d.date!==todayStr());
@@ -258,41 +385,60 @@ function confirmRegenerate(){
 }
 
 function openDetail(i,type){
-  const d= type==='user' ? userDiaries()[i] : diaries[i];
+  const d=type==='user'?userDiaries()[i]:diaries[i];
+  if(!d)return;
   document.getElementById('detailTitle').textContent=d.date||'日记';
   document.getElementById('detailDate').textContent=d.date||'';
-  document.getElementById('detailMeta').textContent= type==='user' ? '我的日记' : '☁ '+(d.weather||'晴')+'　📍 '+(d.location||'未知');
+  document.getElementById('detailMeta').textContent=type==='user'?'我的日记':'☁ '+(d.weather||'晴')+'　📍 '+(d.location||'未知');
   document.getElementById('detailContent').textContent=d.content||'';
   document.getElementById('detailOverlay').style.display='block';
   document.getElementById('detailOverlay').scrollTop=0;
 }
-function closeDetail(){document.getElementById('detailOverlay').style.display='none'}
+function closeDetail(){
+  document.getElementById('detailOverlay').style.display='none';
+}
 
 function openUserDiary(){
   showOnly('userView');
   document.getElementById('userDiaryInput').value='';
   renderUserDiaries();
 }
-function userDiaries(){return storeGet('userDiaries',[]).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0))}
+function userDiaries(){
+  return storeGet('userDiaries',[]).slice().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+}
 function renderUserDiaries(){
   const arr=userDiaries();
   const list=document.getElementById('userDiaryList');
-  if(!arr.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-text">还没有自己的日记<br>可以从上面开始写</div></div>';return}
-  list.innerHTML=arr.map((d,i)=>'<div class="diary-card" onclick="openDetail('+i+',\\'user\\')">'
-    +'<div class="card-header"><div><div class="card-date">'+esc(d.date)+'</div><div class="card-meta">我的日记</div></div></div>'
-    +'<div class="card-preview">'+esc((d.content||'').slice(0,120))+'…</div></div>').join('');
+  if(!arr.length){
+    list.innerHTML='<div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-text">还没有自己的日记<br>可以从上面开始写</div></div>';
+    return;
+  }
+  list.innerHTML='';
+  arr.forEach((d,i)=>{
+    const card=document.createElement('div');
+    card.className='diary-card';
+    card.onclick=()=>openDetail(i,'user');
+    card.innerHTML='<div class="card-header"><div><div class="card-date">'+esc(d.date)+'</div><div class="card-meta">我的日记</div></div></div><div class="card-preview">'+esc((d.content||'').slice(0,120))+'…</div>';
+    list.appendChild(card);
+  });
 }
 function saveUserDiary(){
-  const t=document.getElementById('userDiaryInput').value.trim();
-  if(!t){showToast('先写点内容吧');return}
+  const input=document.getElementById('userDiaryInput');
+  const t=input.value.trim();
+  if(!t){
+    showToast('先写点内容吧');
+    return;
+  }
   const arr=userDiaries().filter(d=>d.date!==todayStr());
   arr.unshift({id:nowTime(),date:todayStr(),content:t,timestamp:nowTime()});
   storeSet('userDiaries',arr);
-  document.getElementById('userDiaryInput').value='';
+  input.value='';
   renderUserDiaries();
   showToast('已保存');
 }
-function clearUserDiaryInput(){document.getElementById('userDiaryInput').value=''}
+function clearUserDiaryInput(){
+  document.getElementById('userDiaryInput').value='';
+}
 
 let toastTimer=null;
 function showToast(msg){
@@ -302,7 +448,8 @@ function showToast(msg){
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>t.style.opacity='0',2600);
 }
-init();
+
+window.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
 </html>
