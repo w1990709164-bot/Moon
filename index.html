@@ -26,9 +26,20 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
 .shell{width:390px;height:844px;background:#0e120b;border-radius:52px;
   box-shadow:0 0 0 1.5px #2a3020,0 0 0 4px #111,0 60px 120px rgba(0,0,0,.85);
   position:relative;overflow:hidden;flex-shrink:0}
+/* 视口高度不足时自动缩放shell，防止被截断 */
+@media(max-height:880px) and (min-width:501px){
+  .wrap{align-items:flex-start;overflow-y:auto}
+  .shell{transform-origin:top center;transform:scale(0.92);margin:0 auto}
+}
+@media(max-height:800px) and (min-width:501px){
+  .shell{transform:scale(0.84)}
+}
+@media(max-height:720px) and (min-width:501px){
+  .shell{transform:scale(0.76)}
+}
 @media(max-width:500px){
-  .wrap{background:#0e120b;padding:0}
-  .shell{width:100vw!important;height:100vh!important;border-radius:0!important;box-shadow:none!important;padding-top:env(safe-area-inset-top,0px)}
+  .wrap{background:#0e120b;padding:0;align-items:flex-start}
+  .shell{width:100vw!important;height:100vh!important;border-radius:0!important;box-shadow:none!important;padding-top:env(safe-area-inset-top,0px);transform:none!important}
   .sb,.cd-nav,.contacts-nav,.wv-top,.mem-nav,.moments-cover,.profile-nav,.music-nav,.wb-nav,.cal-view-nav,.door-nav,.meet-nav,.forum-detail-nav,.gc-list-nav,.gc-chat-nav,.mb-nav,.inv-list-nav,.bb-nav,.wip-nav{padding-top:max(env(safe-area-inset-top,0px),0px)}
 }
 .island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:126px;height:36px;background:#000;border-radius:20px;z-index:999}
@@ -178,6 +189,71 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
 .cd-name{font-size:15px;font-weight:500;flex:1;color:var(--text);letter-spacing:.3px}
 .cd-menu{background:none;border:none;cursor:pointer;color:var(--text-soft);padding:4px;display:flex;flex-direction:column;gap:3.5px;align-items:center}
 .cd-menu-line{width:17px;height:1.5px;background:var(--text-soft);border-radius:1px}
+.cd-call-btn{background:none;border:none;cursor:pointer;color:var(--sage);padding:4px 8px 4px 4px;display:flex;align-items:center;transition:opacity .15s}
+.cd-call-btn:active{opacity:.6}
+.cd-call-btn svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+/* ════ 通话全屏界面 ════ */
+.call-screen{position:absolute;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;overflow:hidden;background:#0e150e}
+.call-bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(28px) brightness(.35) saturate(.6)}
+.call-bg-ov{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,20,10,.55) 0%,rgba(5,12,5,.82) 100%)}
+.call-avatar{width:100px;height:100px;border-radius:50%;overflow:hidden;border:2.5px solid rgba(140,180,100,.4);box-shadow:0 0 0 8px rgba(90,120,60,.12),0 0 0 18px rgba(90,120,60,.06);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:46px;background:rgba(60,80,40,.5);position:relative;z-index:2}
+.call-avatar img{width:100%;height:100%;object-fit:cover}
+.call-avatar-ring{position:absolute;inset:-14px;border-radius:50%;border:1.5px solid rgba(140,180,100,.2);animation:call-ring 2s ease-in-out infinite}
+.call-avatar-ring2{position:absolute;inset:-28px;border-radius:50%;border:1px solid rgba(140,180,100,.1);animation:call-ring 2s ease-in-out .5s infinite}
+@keyframes call-ring{0%{transform:scale(.92);opacity:.8}50%{transform:scale(1);opacity:.3}100%{transform:scale(.92);opacity:.8}}
+.call-name{font-size:26px;font-weight:300;color:#fff;letter-spacing:.8px;position:relative;z-index:2;margin-top:18px}
+.call-status{font-size:13px;color:rgba(255,255,255,.45);letter-spacing:1.5px;margin-top:6px;position:relative;z-index:2}
+.call-timer{font-size:15px;color:rgba(180,220,150,.8);letter-spacing:2px;font-variant-numeric:tabular-nums;position:relative;z-index:2}
+
+/* 通话中字幕区 */
+.call-subtitle{width:100%;padding:0 28px;position:relative;z-index:2;flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:16px;gap:10px;overflow:hidden}
+.call-sub-item{padding:10px 16px;border-radius:16px;font-size:14.5px;line-height:1.6;max-width:85%;letter-spacing:.2px;animation:subIn .25s ease-out}
+@keyframes subIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.call-sub-me{background:rgba(90,120,60,.45);backdrop-filter:blur(8px);border:1px solid rgba(140,180,100,.2);color:rgba(255,255,255,.9);align-self:flex-end;border-radius:16px 16px 4px 16px}
+.call-sub-ai{background:rgba(20,32,16,.65);backdrop-filter:blur(8px);border:1px solid rgba(80,110,60,.25);color:rgba(220,240,200,.9);align-self:flex-start;border-radius:16px 16px 16px 4px}
+
+/* 通话控制按钮 */
+.call-controls{width:100%;padding:0 32px 48px;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:2;flex-shrink:0}
+.call-ctrl{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;transition:opacity .15s}
+.call-ctrl:active{opacity:.6}
+.call-ctrl-icon{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.call-ctrl-icon svg{width:24px;height:24px;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.call-ctrl-label{font-size:11px;color:rgba(255,255,255,.45);letter-spacing:.5px}
+.call-ctrl.mute .call-ctrl-icon{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.1)}
+.call-ctrl.mute.active .call-ctrl-icon{background:rgba(255,255,255,.25)}
+.call-ctrl.mute svg{stroke:rgba(255,255,255,.8)}
+.call-ctrl.speaker .call-ctrl-icon{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.1)}
+.call-ctrl.speaker.active .call-ctrl-icon{background:rgba(255,255,255,.25)}
+.call-ctrl.speaker svg{stroke:rgba(255,255,255,.8)}
+.call-end-btn{width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,#d93030,#b02020);box-shadow:0 6px 24px rgba(200,40,40,.45);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,box-shadow .12s;flex-shrink:0}
+.call-end-btn:active{transform:scale(.93);box-shadow:0 2px 12px rgba(200,40,40,.3)}
+.call-end-btn svg{width:28px;height:28px;stroke:#fff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+/* 说话波纹 */
+.call-wave{display:flex;gap:4px;align-items:center;height:22px;position:relative;z-index:2}
+.call-wave-bar{width:3px;border-radius:2px;background:rgba(140,200,100,.7);animation:wave-anim 1s ease-in-out infinite}
+.call-wave-bar:nth-child(1){animation-delay:0s}
+.call-wave-bar:nth-child(2){animation-delay:.1s}
+.call-wave-bar:nth-child(3){animation-delay:.2s}
+.call-wave-bar:nth-child(4){animation-delay:.3s}
+.call-wave-bar:nth-child(5){animation-delay:.4s}
+@keyframes wave-anim{0%,100%{height:4px;opacity:.4}50%{height:18px;opacity:1}}
+.call-incoming{position:absolute;inset:0;z-index:600;display:flex;flex-direction:column;align-items:center;overflow:hidden;background:#0a120a}
+.call-in-bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(32px) brightness(.25) saturate(.5)}
+.call-in-ov{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(8,16,8,.6),rgba(4,10,4,.9))}
+.call-in-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;position:relative;z-index:2;width:100%}
+.call-in-label{font-size:13px;color:rgba(255,255,255,.4);letter-spacing:2px}
+.call-in-name{font-size:28px;font-weight:300;color:#fff;letter-spacing:.5px}
+.call-in-sub{font-size:13px;color:rgba(180,220,150,.6);letter-spacing:.8px}
+.call-in-btns{display:flex;justify-content:space-around;width:100%;padding:0 40px 52px;position:relative;z-index:2}
+.call-in-btn{display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer}
+.call-in-btn-icon{width:66px;height:66px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .12s}
+.call-in-btn-icon:active{transform:scale(.93)}
+.call-in-btn-label{font-size:12px;color:rgba(255,255,255,.45);letter-spacing:.5px}
+.call-in-accept .call-in-btn-icon{background:linear-gradient(135deg,#3a8a3a,#2a6a2a);box-shadow:0 6px 24px rgba(50,140,50,.4)}
+.call-in-decline .call-in-btn-icon{background:linear-gradient(135deg,#c03030,#9a2020);box-shadow:0 6px 24px rgba(180,40,40,.4)}
+.call-in-btn-icon svg{width:28px;height:28px;stroke:#fff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .msgs{flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:12px}
 .msgs::-webkit-scrollbar{display:none}
 .msg-t{text-align:center;font-size:10px;color:#bbb;padding:2px 0;letter-spacing:.3px}
@@ -1383,6 +1459,43 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
 @keyframes scan{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 .rcheck-grab-btn{position:fixed;top:72px;right:14px;background:rgba(255,80,80,.85);border:none;border-radius:16px;padding:7px 16px;font-size:13px;color:#fff;cursor:pointer;font-family:inherit;font-weight:500;z-index:8002}
 
+/* ════ 引用气泡 ════ */
+.quote-bubble-other{background:rgba(0,0,0,.06);border-left:3px solid var(--sage);border-radius:8px 8px 0 0;padding:6px 10px;margin-bottom:-4px;max-width:100%}
+.quote-bubble-me{background:rgba(255,255,255,.18);border-left:3px solid rgba(255,255,255,.6);border-radius:8px 8px 0 0;padding:6px 10px;margin-bottom:-4px;max-width:100%}
+.quote-bubble-name{font-size:11px;font-weight:500;color:var(--sage-dark);margin-bottom:2px}
+.quote-bubble-me .quote-bubble-name{color:rgba(255,255,255,.9)}
+.quote-bubble-text{font-size:12px;color:var(--text-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quote-bubble-me .quote-bubble-text{color:rgba(255,255,255,.75)}
+
+/* ════ 引用预览条 ════ */
+.quote-bar{display:flex;align-items:center;gap:8px;background:#f5f3ee;border-top:1px solid var(--border);padding:8px 14px;flex-shrink:0}
+.quote-bar-line{width:3px;height:36px;background:var(--sage);border-radius:2px;flex-shrink:0}
+.quote-bar-body{flex:1;min-width:0}
+.quote-bar-name{font-size:11px;font-weight:500;color:var(--sage-dark);margin-bottom:2px}
+.quote-bar-text{font-size:12px;color:var(--text-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quote-bar-close{background:none;border:none;color:#bbb;font-size:20px;cursor:pointer;padding:0 4px;flex-shrink:0;line-height:1}
+
+/* ════ 搜索聊天弹窗 ════ */
+.search-chat-mask{position:absolute;inset:0;z-index:300;background:rgba(0,0,0,.45);display:flex;flex-direction:column;justify-content:flex-start}
+.search-chat-sheet{background:#f5f4f0;flex:1;display:flex;flex-direction:column;overflow:hidden}
+.search-chat-header{display:flex;align-items:center;gap:8px;padding:52px 14px 12px;background:#f5f4f0;border-bottom:1px solid var(--border);flex-shrink:0}
+.search-chat-input{flex:1;background:rgba(255,255,255,.8);border:1px solid var(--border);border-radius:16px;padding:7px 14px;font-size:14px;color:var(--text);font-family:inherit;outline:none}
+.search-chat-close{background:none;border:none;color:var(--sage-dark);font-size:14px;cursor:pointer;font-family:inherit;white-space:nowrap;padding:0}
+.search-chat-results{flex:1;overflow-y:auto}
+.search-chat-results::-webkit-scrollbar{display:none}
+.search-result-item{padding:12px 16px;border-bottom:1px solid rgba(0,0,0,.05);cursor:pointer;transition:background .1s}
+.search-result-item:active{background:rgba(0,0,0,.04)}
+.search-result-role{font-size:11px;color:var(--sage);font-weight:500;margin-bottom:3px}
+.search-result-text{font-size:14px;color:var(--text);line-height:1.5}
+.search-result-text mark{background:rgba(90,110,74,.2);color:var(--sage-dark);border-radius:2px;padding:0 1px}
+.search-result-time{font-size:11px;color:#bbb;margin-top:3px}
+
+/* ════ 主动消息提示 ════ */
+.patience-tip{text-align:center;padding:8px 16px;font-size:11px;color:#bbb;letter-spacing:.3px}
+.patience-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#bbb;margin:0 2px;animation:bnc 1.2s infinite}
+.patience-dot:nth-child(2){animation-delay:.2s}
+.patience-dot:nth-child(3){animation-delay:.4s}
+
 </style>
 </head>
 <body>
@@ -1533,19 +1646,38 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
     <button class="cd-back" @click="pg='wechat'"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
     <div class="cd-av" @click="openEditChar(activeChar)"><img v-if="activeChar&&activeChar.avatarImg" :src="activeChar.avatarImg"><span v-else>{{ activeChar&&(activeChar.emoji||'🌿') }}</span></div>
     <div class="cd-name">{{ activeChar&&activeChar.name }}</div>
+    <div v-if="isBlockedByAi" style="font-size:11px;color:#e05555;margin-right:2px">已拉黑</div>
+    <button class="cd-call-btn" @click.stop="startIncomingCall()" title="打电话">
+      <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.58 3.4 2 2 0 0 1 3.55 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.74a16 16 0 0 0 6.29 6.29l1.1-1.1a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    </button>
     <button class="cd-menu" @click.stop="showSidebar=true"><div class="cd-menu-line"></div><div class="cd-menu-line"></div><div class="cd-menu-line"></div></button>
   </div>
   <div class="msgs" ref="msgBox" @click="showEmojiPanel=false">
     <template v-for="(m,i) in curMsgs" :key="i">
-      <div v-if="m.retracted" :class="['mr',m.role==='user'?'me':'other']">
+      <!-- 通话记录 -->
+      <div v-if="m.isCallRecord" class="msg-t" style="padding:8px 16px">
+        <span style="background:rgba(90,110,74,.12);border-radius:10px;padding:4px 12px;font-size:11.5px;color:var(--text-soft)">{{ m.content }}</span>
+      </div>
+      <div v-else-if="m.retracted" :class="['mr',m.role==='user'?'me':'other']">
         <div class="mav" v-if="m.role!=='user'"><img v-if="activeChar&&activeChar.avatarImg" :src="activeChar.avatarImg"><span v-else>{{ activeChar&&(activeChar.emoji||'🌿') }}</span></div>
-        <div class="msg-content"><div class="msg-retracted">{{ m.role==='user'?'你撤回了一条消息':(activeChar&&activeChar.name||'对方')+'撤回了一条消息' }}</div></div>
+        <div class="msg-content">
+          <div class="msg-retracted" @click="m.showRecalled=!m.showRecalled">
+            {{ m.role==='user'?'你撤回了一条消息':(activeChar&&activeChar.name||'对方')+'撤回了一条消息' }}
+            <span v-if="m.role!=='user'&&m.recalledContent" style="font-size:10px;color:var(--sage);margin-left:6px">👀 偷看</span>
+          </div>
+          <div v-if="m.showRecalled&&m.recalledContent" class="recalled-peek">{{ m.recalledContent }}</div>
+        </div>
       </div>
       <template v-else-if="m.role==='assistant'&&m.bubbles&&m.bubbles.length>0">
         <div class="mr other" v-for="(bub,bi) in m.bubbles" :key="'b'+i+'_'+bi">
           <div class="mav" v-if="bi===0" @click="triggerWhisper(null,m.whisper)"><img v-if="activeChar&&activeChar.avatarImg" :src="activeChar.avatarImg"><span v-else>{{ activeChar&&(activeChar.emoji||'🌿') }}</span></div>
           <div class="mav" v-else style="opacity:0;pointer-events:none"><img v-if="activeChar&&activeChar.avatarImg" :src="activeChar.avatarImg"><span v-else>🌿</span></div>
           <div class="msg-content">
+            <!-- 引用气泡 -->
+            <div v-if="bi===0&&m.quoteRef" class="quote-bubble-other">
+              <div class="quote-bubble-name">{{ m.quoteRef.role==='user'?'你':(activeChar&&activeChar.name) }}</div>
+              <div class="quote-bubble-text">{{ (m.quoteRef.bubbles?m.quoteRef.bubbles.join(' '):m.quoteRef.content).slice(0,40) }}{{ ((m.quoteRef.bubbles?m.quoteRef.bubbles.join(' '):m.quoteRef.content).length>40)?'…':'' }}</div>
+            </div>
             <div class="bub" @touchstart.passive="msgLongpressStart($event,m,i)" @touchend.passive="msgLongpressEnd" @touchmove.passive="msgLongpressEnd" @contextmenu.prevent="msgShowMenu($event,m,i)">{{ bub }}</div>
             <div v-if="m.translations&&m.translations[bi]&&charSettings.translateOn" class="trans-row" style="margin-top:2px">
               <button class="trans-btn" @click.stop="toggleTrans(m)">{{ m.showTrans?'收起':'查看翻译' }}</button>
@@ -1560,8 +1692,17 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
       <!-- 用户消息：头像在右 -->
       <div v-else-if="m.role==='user'" class="mr me">
         <div class="msg-content">
+          <!-- 引用气泡（用户消息） -->
+          <div v-if="m.quoteRef" class="quote-bubble-me">
+            <div class="quote-bubble-name">{{ m.quoteRef.role==='user'?'你':(activeChar&&activeChar.name) }}</div>
+            <div class="quote-bubble-text">{{ (m.quoteRef.bubbles?m.quoteRef.bubbles.join(' '):m.quoteRef.content).slice(0,40) }}{{ ((m.quoteRef.bubbles?m.quoteRef.bubbles.join(' '):m.quoteRef.content).length>40)?'…':'' }}</div>
+          </div>
           <div v-if="m.type==='image'" class="msg-img" @click="previewImg=m.content"><img :src="m.content"></div>
           <div v-else-if="m.type==='sticker'" class="msg-img" style="max-width:120px" @click="previewImg=m.content"><img :src="m.content" style="border-radius:8px"></div>
+          <!-- 拉黑状态：消息显示感叹号 -->
+          <div v-if="m.blocked" style="display:flex;align-items:center;gap:6px">
+            <span style="color:#e05555;font-size:18px;font-weight:700">!</span>
+          </div>
           <div v-else class="bub" @touchstart.passive="msgLongpressStart($event,m,i)" @touchend.passive="msgLongpressEnd" @touchmove.passive="msgLongpressEnd" @contextmenu.prevent="msgShowMenu($event,m,i)">{{ m.content }}</div>
           <div class="msg-meta-row">
             <span class="msg-time-inline" v-if="isLastInGroup(i)">{{ formatMsgTime(m.ts) }}</span>
@@ -1574,7 +1715,7 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
       <div v-else class="mr other">
         <div class="mav" @click="triggerWhisper(null,m.whisper)"><img v-if="activeChar&&activeChar.avatarImg" :src="activeChar.avatarImg"><span v-else>{{ activeChar&&(activeChar.emoji||'🌿') }}</span></div>
         <div class="msg-content">
-          <div v-if="m.type==='image'" class="msg-img" @click="previewImg=m.content"><img :src="m.content"></div>
+          <div v-if="m.type==='image'" class="msg-img ai-img" @click="previewImg=m.content"><img :src="m.content" @error="$event.target.style.display='none'"><div v-if="m.imgPrompt" class="ai-img-tag">📷 AI 生成</div></div>
           <div v-else-if="m.type==='sticker'" class="msg-img" style="max-width:120px" @click="previewImg=m.content"><img :src="m.content" style="border-radius:8px"></div>
           <div v-else class="bub" @touchstart.passive="msgLongpressStart($event,m,i)" @touchend.passive="msgLongpressEnd" @touchmove.passive="msgLongpressEnd" @contextmenu.prevent="msgShowMenu($event,m,i)">{{ m.content }}</div>
           <div v-if="charSettings.translateOn" class="trans-row">
@@ -1619,13 +1760,26 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
   </div>
 
   <div v-if="msgActionMenu" class="msg-action-menu" :style="{position:'fixed',top:msgActionMenu.y+'px',left:msgActionMenu.x+'px'}" @click.stop>
-    <div class="msg-action-item" @click="msgRetract(msgActionMenu.msg,msgActionMenu.idx)"><svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>撤回</div>
-    <div class="msg-action-item danger" @click="msgDelete(msgActionMenu.idx)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>删除（清除记忆）</div>
+    <div class="msg-action-item" @click="msgQuote(msgActionMenu.msg);msgActionMenu=null"><svg viewBox="0 0 24 24"><path d="M3 7h10M3 12h7M3 17h10"/><path d="M21 15l-5-5-5 5"/></svg>引用回复</div>
+    <div v-if="msgActionMenu.msg.role==='user'" class="msg-action-item" @click="msgRetract(msgActionMenu.msg,msgActionMenu.idx)"><svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>撤回</div>
+    <div class="msg-action-item danger" @click="msgDelete(msgActionMenu.idx)"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>删除</div>
     <div class="msg-action-item" @click="msgActionMenu=null"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>取消</div>
   </div>
 
+  <!-- 引用预览条 -->
+  <div class="quote-bar" v-if="quotingMsg" @click.stop>
+    <div class="quote-bar-line"></div>
+    <div class="quote-bar-body">
+      <div class="quote-bar-name">{{ quotingMsg.role==='user'?'你':(activeChar&&activeChar.name) }}</div>
+      <div class="quote-bar-text">{{ (quotingMsg.bubbles?quotingMsg.bubbles.join(' '):quotingMsg.content).slice(0,40) }}{{ ((quotingMsg.bubbles?quotingMsg.bubbles.join(' '):quotingMsg.content).length>40)?'…':'' }}</div>
+    </div>
+    <button class="quote-bar-close" @click.stop="quotingMsg=null">×</button>
+  </div>
   <div class="ibar" @click.stop>
     <div class="ibar-row">
+      <button class="ibar-btn" @click.stop="showSearchChat=true">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
       <button class="ibar-btn" @click.stop="showEmojiPanel=!showEmojiPanel">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
       </button>
@@ -1702,6 +1856,97 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
     </div>
   </div>
 
+  <!-- 搜索聊天记录弹窗 -->
+  <div class="search-chat-mask" v-if="showSearchChat" @click.self="showSearchChat=false;searchQuery='';searchResults=[]">
+    <div class="search-chat-sheet" @click.stop>
+      <div class="search-chat-header">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#888" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-chat-input" v-model="searchQuery" placeholder="搜索聊天记录…" @input="doSearchChat" autofocus>
+        <button class="search-chat-close" @click="showSearchChat=false;searchQuery='';searchResults=[]">取消</button>
+      </div>
+      <div class="search-chat-results">
+        <div v-if="searchQuery&&searchResults.length===0" style="text-align:center;padding:32px;color:#bbb;font-size:13px">没有找到相关消息</div>
+        <div v-for="(m,i) in searchResults" :key="i" class="search-result-item" @click="jumpToMsg(m);showSearchChat=false;searchQuery='';searchResults=[]">
+          <div class="search-result-role">{{ m.role==='user'?'你':(activeChar&&activeChar.name) }}</div>
+          <div class="search-result-text" v-html="highlightSearch(m.bubbles?m.bubbles.join(' '):m.content)"></div>
+          <div class="search-result-time">{{ formatMsgTime(m.ts) }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ 来电界面 ════ -->
+  <div class="call-incoming" v-if="callState==='incoming'">
+    <div class="call-in-bg" :style="activeChar&&activeChar.avatarImg?{backgroundImage:'url('+activeChar.avatarImg+')'}:{}"></div>
+    <div class="call-in-ov"></div>
+    <div class="call-in-body">
+      <div class="call-avatar" style="width:110px;height:110px;font-size:50px">
+        <div class="call-avatar-ring"></div>
+        <div class="call-avatar-ring2"></div>
+        <img v-if="activeChar&&activeChar.avatarImg" :src="activeChar.avatarImg">
+        <span v-else>{{ activeChar&&(activeChar.emoji||'🌿') }}</span>
+      </div>
+      <div class="call-in-label">来电</div>
+      <div class="call-in-name">{{ activeChar&&activeChar.name }}</div>
+      <div class="call-in-sub">{{ activeChar&&(activeChar.relation||activeChar.identity||'角色') }}</div>
+    </div>
+    <div class="call-in-btns">
+      <div class="call-in-btn call-in-decline" @click="declineCall()">
+        <div class="call-in-btn-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+        <div class="call-in-btn-label">拒绝</div>
+      </div>
+      <div class="call-in-btn call-in-accept" @click="acceptCall()">
+        <div class="call-in-btn-icon"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.58 3.4 2 2 0 0 1 3.55 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.74a16 16 0 0 0 6.29 6.29l1.1-1.1a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+        <div class="call-in-btn-label">接听</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ 通话中界面 ════ -->
+  <div class="call-screen" v-if="callState==='active'">
+    <div class="call-bg" :style="activeChar&&activeChar.avatarImg?{backgroundImage:'url('+activeChar.avatarImg+')'}:{}"></div>
+    <div class="call-bg-ov"></div>
+    <!-- 顶部：头像 + 名字 -->
+    <div style="display:flex;flex-direction:column;align-items:center;padding-top:60px;position:relative;z-index:2">
+      <div class="call-avatar">
+        <div class="call-avatar-ring" v-if="callAiSpeaking"></div>
+        <img v-if="activeChar&&activeChar.avatarImg" :src="activeChar.avatarImg">
+        <span v-else>{{ activeChar&&(activeChar.emoji||'🌿') }}</span>
+      </div>
+      <div class="call-name">{{ activeChar&&activeChar.name }}</div>
+      <div class="call-timer">{{ callTimerStr }}</div>
+      <!-- 说话波纹 -->
+      <div class="call-wave" v-if="callAiSpeaking||callUserSpeaking" style="margin-top:8px">
+        <div class="call-wave-bar" v-for="n in 5" :key="n" :style="{animationDelay:(n-1)*0.1+'s'}"></div>
+      </div>
+    </div>
+    <!-- 字幕区 -->
+    <div class="call-subtitle">
+      <div v-for="(line,i) in callSubtitles" :key="i"
+        :class="['call-sub-item', line.role==='user'?'call-sub-me':'call-sub-ai']">
+        {{ line.text }}
+      </div>
+    </div>
+    <!-- 控制按钮 -->
+    <div class="call-controls">
+      <div class="call-ctrl mute" :class="{active:callMuted}" @click="toggleCallMute()">
+        <div class="call-ctrl-icon">
+          <svg viewBox="0 0 24 24"><line v-if="callMuted" x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </div>
+        <div class="call-ctrl-label">{{ callMuted?'取消静音':'静音' }}</div>
+      </div>
+      <div class="call-end-btn" @click="endCall()">
+        <svg viewBox="0 0 24 24"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
+      </div>
+      <div class="call-ctrl speaker" :class="{active:callSpeaker}" @click="callSpeaker=!callSpeaker">
+        <div class="call-ctrl-icon">
+          <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path v-if="callSpeaker" d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/><path v-else d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </div>
+        <div class="call-ctrl-label">{{ callSpeaker?'扬声器':'听筒' }}</div>
+      </div>
+    </div>
+  </div>
+
   <!-- 心声遮罩（全屏弹出） -->
   <div class="whisper-mask" v-if="showWhisperMask" @click="showWhisperMask=false">
     <div class="whisper-card">
@@ -1767,6 +2012,11 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
         <div class="sb-row" @click="openEditChar"><div class="sb-row-label">编辑角色信息</div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
         <div class="sb-row" @click="go('memorylib');showSidebar=false"><div class="sb-row-label">查看记忆库</div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
         <div class="sb-row"><div class="sb-danger" @click="deleteChar">删除角色</div></div>
+        <div v-if="isBlockedByAi" class="sb-row">
+          <div style="color:#e08000;font-size:13px;cursor:pointer;padding:8px 0;width:100%" @click="setAiBlock(activeChar.id,false);showSidebar=false">
+            ⚠️ 角色已拉黑你，点击解除（作弊）
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -3407,6 +3657,18 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
         <div v-if="listWall" @click="clearListWP()" style="padding:9px 14px;background:#fff;color:#e05555;border:1px solid #e0c0c0;border-radius:10px;font-size:13px;text-align:center;cursor:pointer">清除背景</div>
       </div>
     </div>
+    <div class="ssec">角色发图（Pollinations AI，免费无需Key）</div>
+    <div class="sg">
+      <div class="sr" style="flex-direction:row;align-items:center;justify-content:space-between">
+        <div class="sl" style="font-size:14px;color:var(--text);margin:0">启用角色发图</div>
+        <div class="toggle" :class="api.imgEnable?'on':'off'" @click="api.imgEnable=!api.imgEnable"><div class="toggle-dot"></div></div>
+      </div>
+      <div v-if="api.imgEnable">
+        <div class="sl" style="margin-bottom:6px">触发方式：用户说"拍张照/发个图/让我看看"等，或AI主动发图</div>
+        <div class="sl" style="margin-bottom:4px">画风提示词（可选，英文，如 cinematic, anime style）</div>
+        <input class="si" v-model="api.imgStyle" placeholder="例：cinematic photo, warm lighting"/>
+      </div>
+    </div>
     <button class="mb ok" @click="saveSt">保存</button>
     <button class="mb no" @click="showSt=false">取消</button>
   </div>
@@ -3438,6 +3700,7 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
     <div class="ssec">角色设定</div>
     <div class="sg">
       <div class="sr"><div class="sl">System Prompt</div><textarea class="si" v-model="nc.system" placeholder="描述角色的性格、背景、说话风格……" rows="6" style="resize:vertical"></textarea></div>
+      <div class="sr"><div class="sl">外貌描述（用于角色发图，建议英文）</div><input class="si" v-model="nc.appearance" placeholder="例：young woman, black hair, green eyes, casual outfit"/></div>
     </div>
     <button class="mb ok" @click="saveChar">{{ showEditChar?'保存修改':'创建角色' }}</button>
     <button class="mb no" @click="showAdd=false;showEditChar=false">取消</button>
@@ -3483,6 +3746,18 @@ createApp({
     const showSt=ref(false),showAdd=ref(false),showEditChar=ref(false);
     const showSidebar=ref(false),showEmojiPanel=ref(false);
     const showWhisperMask=ref(false),whisperText=ref(''),whisperLoading=ref(false),whisperCharName=ref('');
+    // 引用回复
+    const quotingMsg=ref(null);
+    // 搜索
+    const showSearchChat=ref(false),searchQuery=ref(''),searchResults=ref([]);
+    // AI主动消息倒计时
+    const patienceTimer=ref(null);
+    // 拉黑状态
+    const isBlockedByAi=ref(false);
+    // AI今日行程缓存
+    const aiScheduleCache=ref({});
+    // 聊天消息跳转索引
+    const jumpMsgIdx=ref(-1);
     const activeChar=ref(null);
     const msgBox=ref(null),anchor=ref(null),inputEl=ref(null),avInput=ref(null);
     const previewImg=ref(null);
@@ -3499,7 +3774,7 @@ createApp({
     const listWallSt=computed(()=>listWall.value?{backgroundImage:`url(${listWall.value})`,backgroundSize:'cover',backgroundPosition:'center'}:{});
     const chars=ref(JSON.parse(localStorage.getItem('chars')||'[]'));
     const allMsgs=ref(JSON.parse(localStorage.getItem('msgs')||'{}'));
-    const api=ref(JSON.parse(localStorage.getItem('api')||'{"url":"","key":"","model":"","minimaxKey":"","minimaxGroup":""}'));
+    const api=ref(JSON.parse(localStorage.getItem('api')||'{"url":"","key":"","model":"","minimaxKey":"","minimaxGroup":"","imgEnable":false,"imgStyle":""}'));
     const preWP=ref(PWP);
     const emojis=ref(EMOJIS);
     const nc=ref({name:'',emoji:'🌿',avatarImg:'',realName:'',birthday:'',identity:'',relation:'',system:''});
@@ -3538,7 +3813,7 @@ const minimaxVoices=ref([]);
     tick();setInterval(tick,1000);
 
     function unlock(){pg.value='home'}
-    function go(id){pg.value=id;showEmojiPanel.value=false}
+    function go(id){pg.value=id;showEmojiPanel.value=false;if(id!=='chat')clearPatienceTimer();}
 
     // 全屏
     const isFullscreen=ref(!!document.fullscreenElement);
@@ -3743,7 +4018,16 @@ const minimaxVoices=ref([]);
         ttsAudio.onended=()=>{URL.revokeObjectURL(url);ttsAudio=null};
       }catch(e){console.error('TTS error:',e)}
     }
-    function openChat(c){activeChar.value=c;c.unread=0;saveChars();pg.value='chat';showEmojiPanel.value=false;nextTick(scrollB)}
+    function openChat(c){
+      activeChar.value=c;
+      c.unread=0;saveChars();
+      pg.value='chat';
+      showEmojiPanel.value=false;
+      quotingMsg.value=null;
+      checkBlockedStatus(c.id);
+      startPatienceTimer();
+      nextTick(scrollB);
+    }
     function scrollB(){if(anchor.value)anchor.value.scrollIntoView({behavior:'smooth'})}
     function onInput(){hasInput.value=inputEl.value&&inputEl.value.innerText.trim().length>0}
 
@@ -3791,8 +4075,29 @@ const minimaxVoices=ref([]);
     function msgLongpressStart(e,msg,idx){msgLpTimer=setTimeout(()=>{const touch=e.touches?.[0]||e;const x=Math.min(touch.clientX,window.innerWidth-150);const y=Math.max(touch.clientY-130,60);msgActionMenu.value={msg,idx,x,y}},500)}
     function msgLongpressEnd(){clearTimeout(msgLpTimer)}
     function msgShowMenu(e,msg,idx){const x=Math.min(e.clientX,window.innerWidth-150);const y=Math.max(e.clientY-130,60);msgActionMenu.value={msg,idx,x,y}}
-    function msgRetract(msg,idx){const id=activeChar.value?.id;if(!id)return;const msgs=allMsgs.value[id];if(msgs&&msgs[idx]){msgs[idx].retracted=true;msgs[idx].content='[已撤回]';saveMsgs()}msgActionMenu.value=null}
-    function msgDelete(idx){const id=activeChar.value?.id;if(!id)return;const msgs=allMsgs.value[id];if(msgs){msgs.splice(idx,1);saveMsgs()}msgActionMenu.value=null}
+    function msgRetract(msg,idx){
+      const id=activeChar.value?.id;if(!id)return;
+      const msgs=allMsgs.value[id];
+      if(msgs&&msgs[idx]){
+        msgs[idx].retracted=true;
+        msgs[idx].recalledContent=msgs[idx].content;
+        msgs[idx].content='你撤回了一条消息';
+        saveMsgs();
+      }
+      msgActionMenu.value=null;
+    }
+    function msgDelete(idx){
+      const id=activeChar.value?.id;if(!id)return;
+      const msgs=allMsgs.value[id];
+      if(msgs){
+        msgs.splice(idx,1);
+        saveMsgs();
+        // 同步清理记忆库中相关片段
+        const mem=memoryLib.value[id];
+        if(mem)saveMemoryLib();
+      }
+      msgActionMenu.value=null;
+    }
 
     // 已读：用户进入聊天时标记AI消息为已读
     watch(()=>pg.value,(v)=>{if(v==='chat'&&activeChar.value){const id=activeChar.value.id;const msgs=allMsgs.value[id];if(msgs)msgs.forEach(m=>{if(m.role==='user')m.read=true});saveMsgs()}});
@@ -3808,14 +4113,461 @@ const minimaxVoices=ref([]);
     function removeSticker(idx){stickerList.value.splice(idx,1);saveStickerList()}
     function sendSticker(url){
       const id=activeChar.value?.id;if(!id)return;
+      if(isBlockedByAi.value)return;
       const now=new Date();const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
       if(!allMsgs.value[id])allMsgs.value[id]=[];
       allMsgs.value[id].push({role:'user',type:'sticker',content:url,time:t,ts:now.getTime()});
       saveMsgs();showEmojiPanel.value=false;nextTick(scrollB);
+      if(!typing.value&&api.value.url&&api.value.key){
+        typing.value=true;nextTick(scrollB);
+        const sys=buildSystemPrompt('[用户发了一个表情包]');
+        callAPI([...buildHistory(id),{role:'user',content:'[用户发了一个表情包给你，请以角色身份自然回应]'}],sys)
+          .then(raw=>{
+            const parsed=parseReplyMulti(raw);
+            const n2=new Date();
+            const t2=`${String(n2.getHours()).padStart(2,'0')}:${String(n2.getMinutes()).padStart(2,'0')}`;
+            const cleanB=(parsed.bubbles||[raw]).map(b=>parseAiTags(b,id));
+            allMsgs.value[id].push({role:'assistant',content:cleanB.join('\n'),bubbles:cleanB,whisper:parsed.whisper||null,showTrans:false,time:t2,ts:n2.getTime()});
+            saveMsgs();
+          }).catch(()=>{}).finally(()=>{typing.value=false;nextTick(scrollB)});
+      }
     }
 
     // 多气泡：重写parseReply使用bubbles数组
     // 已在send函数中处理，此处无需改动
+
+
+    // ════ 引用回复 ════
+    function msgQuote(msg){quotingMsg.value=msg}
+
+    // ════ 搜索聊天记录 ════
+    function doSearchChat(){
+      const q=searchQuery.value.trim().toLowerCase();
+      if(!q||!activeChar.value){searchResults.value=[];return}
+      const msgs=allMsgs.value[activeChar.value.id]||[];
+      searchResults.value=msgs.filter(m=>{
+        const txt=m.bubbles?m.bubbles.join(' '):m.content;
+        return txt.toLowerCase().includes(q);
+      }).slice().reverse().slice(0,50);
+    }
+    function highlightSearch(text){
+      if(!searchQuery.value)return text;
+      const q=searchQuery.value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      return text.replace(new RegExp('('+q+')','gi'),'<mark>$1</mark>');
+    }
+    function jumpToMsg(msg){
+      const msgs=allMsgs.value[activeChar.value?.id]||[];
+      const idx=msgs.findIndex(m=>m.ts===msg.ts);
+      nextTick(()=>{
+        const box=document.querySelector('.msgs');
+        if(!box)return;
+        const items=box.querySelectorAll('.mr');
+        if(items[idx])items[idx].scrollIntoView({behavior:'smooth',block:'center'});
+      });
+    }
+
+    // ════ AI主动消息（patience 系统）════
+    function startPatienceTimer(){
+      clearPatienceTimer();
+      if(!activeChar.value||!api.value.url||!api.value.key)return;
+      const rel=(activeChar.value.relation||activeChar.value.identity||'').toLowerCase();
+      const isClose=['恋人','男友','女友','情人','lover','partner','伴侣','对象','老婆','老公'].some(k=>rel.includes(k));
+      const minMs=isClose?5*60*1000:10*60*1000;
+      const maxMs=isClose?10*60*1000:20*60*1000;
+      const delay=Math.floor(Math.random()*(maxMs-minMs)+minMs);
+      patienceTimer.value=setTimeout(()=>triggerPatienceMsg(),delay);
+    }
+    function clearPatienceTimer(){
+      if(patienceTimer.value){clearTimeout(patienceTimer.value);patienceTimer.value=null}
+    }
+    async function triggerPatienceMsg(){
+      if(!activeChar.value||!api.value.url||!api.value.key)return;
+      const id=activeChar.value.id;
+      const msgs=allMsgs.value[id]||[];
+      const lastMsg=msgs[msgs.length-1];
+      if(!lastMsg||lastMsg.role!=='user')return;
+      if(isBlockedByAi.value)return;
+      try{
+        const c=activeChar.value;
+        const nowH=new Date().getHours();
+        const timeSlot=nowH>=22||nowH<5?'深夜/凌晨':nowH>=5&&nowH<9?'清晨':nowH>=9&&nowH<18?'白天':'傍晚到晚上';
+        const recentCtx=msgs.slice(-6).map(m=>(m.role==='user'?'用户':'角色')+':'+(m.bubbles?m.bubbles.join(' '):m.content).slice(0,40)).join('\n');
+        const sys=`你是${c.name}。${c.system||''}\n用户已经有一段时间没有回消息了（现在是${timeSlot}）。\n你主动发一条消息，内容自然，可以问他在干嘛/分享一件小事/随便说一句话。\n禁止说"你还在吗"，禁止催促，像真实的人发微信一样简短。\n只输出JSON：{"messages":["消息内容"],"whisper":"你此刻内心独白(中文20字内)"}`;
+        const raw=await callAPI([{role:'user',content:recentCtx||'（沉默中）'}],sys);
+        const parsed=parseReplyMulti(raw);
+        if(!parsed.bubbles||parsed.bubbles.length===0)return;
+        const now=new Date();
+        const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        if(!allMsgs.value[id])allMsgs.value[id]=[];
+        const cleanBubs=parsed.bubbles.map(b=>parseAiTags(b,id));
+        allMsgs.value[id].push({role:'assistant',content:cleanBubs.join('\n'),bubbles:cleanBubs,whisper:parsed.whisper||null,showTrans:false,time:t,ts:now.getTime(),isPatience:true});
+        saveMsgs();
+        activeChar.value.unread=(activeChar.value.unread||0)+1;
+        saveChars();
+        await nextTick(scrollB);
+      }catch(e){console.error('patience error',e)}
+    }
+
+    // ════ 今日行程生成 ════
+    async function generateTodaySchedule(charId){
+      if(!api.value.url||!api.value.key)return'';
+      const today=new Date().toLocaleDateString('zh');
+      const cacheKey=charId+'_sched_'+today;
+      if(aiScheduleCache.value[cacheKey])return aiScheduleCache.value[cacheKey];
+      const c=chars.value.find(x=>x.id===charId);if(!c)return'';
+      try{
+        const sys=`为角色${c.name}生成今天的3-5个时间节点行程。\n角色设定：${(c.system||'').slice(0,300)}\n只输出JSON数组：[{"time":"09:00","event":"行程描述","mood":"此刻心情一句话"}]\n当前时间：${new Date().getHours()}点。只输出JSON。`;
+        const raw=await callAPI([{role:'user',content:'生成今日行程'}],sys);
+        const arr=JSON.parse(raw.replace(/```json|```/g,'').trim());
+        const str=arr.map(s=>`${s.time} ${s.event}（心情：${s.mood}）`).join('\n');
+        aiScheduleCache.value[cacheKey]=str;
+        return str;
+      }catch(e){return''}
+    }
+
+    // ════ NPC动态生成 ════
+    async function generateNpcEvents(charId){
+      if(!api.value.url||!api.value.key)return'';
+      const today=new Date().toLocaleDateString('zh');
+      const cacheKey=charId+'_npc_'+today;
+      if(aiScheduleCache.value[cacheKey])return aiScheduleCache.value[cacheKey];
+      const c=chars.value.find(x=>x.id===charId);if(!c)return'';
+      try{
+        const sys=`根据角色${c.name}的设定，生成今天TA身边3个配角各发生的一件小事。\n角色设定：${(c.system||'').slice(0,200)}\n只输出JSON数组：[{"name":"人名","event":"事件描述一句话"}]\n只输出JSON。`;
+        const raw=await callAPI([{role:'user',content:'生成NPC动态'}],sys);
+        const arr=JSON.parse(raw.replace(/```json|```/g,'').trim());
+        const str=arr.map(n=>`${n.name}：${n.event}`).join('\n');
+        aiScheduleCache.value[cacheKey]=str;
+        return str;
+      }catch(e){return''}
+    }
+
+    // ════ 拉黑 ════
+    function checkBlockedStatus(charId){
+      isBlockedByAi.value=localStorage.getItem('aiBlock_'+charId)==='1';
+    }
+    function setAiBlock(charId,blocked){
+      localStorage.setItem('aiBlock_'+charId,blocked?'1':'0');
+      isBlockedByAi.value=blocked;
+    }
+
+    // ════ AI备注名 ════
+    function applyNickname(charId,nickname){
+      const idx=chars.value.findIndex(c=>c.id===charId);
+      if(idx<0||!nickname)return;
+      chars.value[idx].userNickname=nickname;
+      saveChars();
+    }
+
+    // ════ 解析AI特殊标签 ════
+    function parseAiTags(text,charId){
+      let clean=text;
+      if(clean.includes('[BLOCK_USER]')){
+        clean=clean.replace(/\[BLOCK_USER\]/g,'').trim();
+        setAiBlock(charId,true);
+      }
+      const nickMatch=clean.match(/\[SET_NICKNAME:([^\]]{1,10})\]/);
+      if(nickMatch){
+        applyNickname(charId,nickMatch[1]);
+        clean=clean.replace(/\[SET_NICKNAME:[^\]]+\]/g,'').trim();
+      }
+      return clean;
+    }
+
+    // ════ Pollinations.ai 生图 ════
+    // 根据对话上下文生成 prompt，再调免费 API
+    async function buildImgPrompt(charId){
+      const c=chars.value.find(x=>x.id===charId);
+      if(!c)return'';
+      const msgs=allMsgs.value[charId]||[];
+      const recentTxt=msgs.slice(-6).filter(m=>m.role==='user'||m.role==='assistant')
+        .map(m=>(m.role==='user'?'User':'Char')+':'+(m.bubbles?m.bubbles.join(' '):m.content).slice(0,40)).join(' | ');
+      const appearance=c.appearance||'';
+      const styleExtra=api.value.imgStyle||'';
+      // 用 AI 生成图片 prompt（简短英文描述）
+      if(!api.value.url||!api.value.key)return null;
+      try{
+        const sys=`You are a Stable Diffusion prompt writer.
+Character: ${c.name}. ${appearance?'Appearance: '+appearance+'.':''} 
+Based on the recent chat context, write a short image prompt (max 60 words) showing what the character is doing or sending right now.
+Format: [subject and action], [setting], [lighting], [style]. 
+${styleExtra?'Style must include: '+styleExtra+'.':'Photorealistic, cinematic.'}
+Only output the prompt, no explanation.`;
+        const res=await fetch(api.value.url.replace(/\/$/,'')+'/chat/completions',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+api.value.key},
+          body:JSON.stringify({model:api.value.model,messages:[{role:'system',content:sys},{role:'user',content:recentTxt||'casual selfie'}],stream:false,max_tokens:120})
+        });
+        const data=await res.json();
+        if(data.error)return null;
+        return(data.choices?.[0]?.message?.content||'').replace(/```/g,'').trim().slice(0,300);
+      }catch(e){return null}
+    }
+
+    async function generateAndSendImage(charId){
+      const prompt=await buildImgPrompt(charId);
+      if(!prompt)return;
+      const encoded=encodeURIComponent(prompt);
+      // Pollinations.ai 免费，支持 NSFW 关闭，1024x1024
+      const url=`https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&enhance=true`;
+      const now=new Date();
+      const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      if(!allMsgs.value[charId])allMsgs.value[charId]=[];
+      // 先加占位符
+      const placeholder={role:'assistant',content:'📷 正在翻相册…',bubbles:['📷 正在翻相册…'],time:t,ts:now.getTime(),isImgLoading:true};
+      allMsgs.value[charId].push(placeholder);
+      saveMsgs();
+      await nextTick(scrollB);
+      // 图片 URL 直接用（Pollinations 是同步的，URL 即图片）
+      const imgMsg={role:'assistant',type:'image',content:url,imgPrompt:prompt,time:t,ts:now.getTime()+1};
+      // 移除占位符
+      const arr=allMsgs.value[charId];
+      const pi=arr.indexOf(placeholder);
+      if(pi>=0)arr.splice(pi,1);
+      arr.push(imgMsg);
+      saveMsgs();
+      await nextTick(scrollB);
+    }
+
+    // ════ 检测用户消息是否触发发图 ════
+    const IMG_TRIGGER_WORDS=['拍张照','拍一张','发个图','发张图','发图来','让我看看','发张照','照片发我','报备','你在哪','你现在在','看看你','看你','拍下来','show me','send a photo','take a pic','send pic'];
+
+    async function maybeGenerateImage(userMsg,charId){
+      if(!api.value.imgEnable)return;
+      const hit=IMG_TRIGGER_WORDS.some(w=>userMsg.toLowerCase().includes(w));
+      // AI 自发图：5% 概率（日常场景）
+      const aiSpontaneous=Math.random()<0.05;
+      if(!hit&&!aiSpontaneous)return;
+      // 延迟一点，让文字先显示
+      await new Promise(r=>setTimeout(r,800));
+      await generateAndSendImage(charId);
+    }
+
+
+    // ════════════════════════════════════════════════
+    // 通话系统
+    // ════════════════════════════════════════════════
+    const callState=ref('idle'); // idle | incoming | active
+    const callTimerStr=ref('00:00');
+    const callSubtitles=ref([]);
+    const callMuted=ref(false);
+    const callSpeaker=ref(false);
+    const callAiSpeaking=ref(false);
+    const callUserSpeaking=ref(false);
+    let callTimerInterval=null;
+    let callSeconds=0;
+    let callSpeechRecog=null;
+    let callTtsAudio=null;
+    let callAiThinking=false;
+
+    // 主叫（用户点电话按钮）→ 模拟拨出 1.5s 后接通
+    function startIncomingCall(){
+      if(!activeChar.value)return;
+      callState.value='incoming';
+      callSubtitles.value=[];
+      callMuted.value=false;
+      callAiSpeaking.value=false;
+      callUserSpeaking.value=false;
+      // 1.5秒后自动"接听"（模拟对方接电话）
+      setTimeout(()=>{ if(callState.value==='incoming') acceptCall(); },1500);
+    }
+
+    function declineCall(){
+      callState.value='idle';
+      stopCallAll();
+    }
+
+    function acceptCall(){
+      callState.value='active';
+      callSeconds=0;
+      callTimerStr.value='00:00';
+      callTimerInterval=setInterval(()=>{
+        callSeconds++;
+        const m=String(Math.floor(callSeconds/60)).padStart(2,'0');
+        const s=String(callSeconds%60).padStart(2,'0');
+        callTimerStr.value=`${m}:${s}`;
+      },1000);
+      // AI 先说一句开场白
+      setTimeout(()=>aiCallGreeting(),400);
+    }
+
+    async function aiCallGreeting(){
+      if(callState.value!=='active'||!activeChar.value)return;
+      const c=activeChar.value;
+      const id=c.id;
+      const msgs=allMsgs.value[id]||[];
+      const recentCtx=msgs.slice(-4).map(m=>(m.role==='user'?'用户':'角色')+'：'+(m.bubbles?m.bubbles.join(' '):m.content).slice(0,30)).join('\n');
+      const sys=`你是${c.name}。${c.system||''}\n用户刚刚给你打电话了，接通后你第一句话说什么？10-20字，口语化，有你的性格，符合你们的关系（${c.relation||c.identity||''}）。\n只输出那句话，不要任何解释或标签。`;
+      try{
+        callAiSpeaking.value=true;
+        const raw=await callAPI([{role:'user',content:recentCtx||'（刚接通）'}],sys);
+        const text=(raw||'').replace(/```|"|\n/g,'').trim().slice(0,60);
+        if(!text||callState.value!=='active')return;
+        pushCallSub('ai',text);
+        await callTTS(text);
+      }catch(e){pushCallSub('ai','（信号有点差……）')}
+      finally{callAiSpeaking.value=false}
+      // 接通后启动语音识别
+      startCallSpeechRecog();
+    }
+
+    function pushCallSub(role,text){
+      callSubtitles.value.push({role,text});
+      if(callSubtitles.value.length>8)callSubtitles.value.shift();
+    }
+
+    // TTS：优先 MiniMax，没有就用 Web Speech API
+    async function callTTS(text){
+      if(!text||callState.value!=='active')return;
+      const settings=charSettings.value;
+      const hasMinimax=api.value.minimaxKey&&api.value.minimaxGroup&&settings.voiceId;
+      if(hasMinimax){
+        try{
+          const res=await fetch(`https://api.minimax.chat/v1/t2a_v2?GroupId=${api.value.minimaxGroup}`,{
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':'Bearer '+api.value.minimaxKey},
+            body:JSON.stringify({model:'speech-01-turbo',text,stream:false,voice_setting:{voice_id:settings.voiceId,speed:1.0,vol:1.0,pitch:0},audio_setting:{sample_rate:32000,bitrate:128000,format:'mp3'}})
+          });
+          const data=await res.json();
+          const audioHex=data.data?.audio;
+          if(audioHex){
+            const bytes=new Uint8Array(audioHex.match(/.{1,2}/g).map(b=>parseInt(b,16)));
+            const blob=new Blob([bytes],{type:'audio/mp3'});
+            const url=URL.createObjectURL(blob);
+            await new Promise(resolve=>{
+              callTtsAudio=new Audio(url);
+              callTtsAudio.play();
+              callTtsAudio.onended=()=>{URL.revokeObjectURL(url);callTtsAudio=null;resolve()};
+              callTtsAudio.onerror=()=>{resolve()};
+            });
+            return;
+          }
+        }catch(e){}
+      }
+      // Fallback：Web Speech API
+      if('speechSynthesis' in window){
+        await new Promise(resolve=>{
+          const u=new SpeechSynthesisUtterance(text);
+          u.lang='zh-CN';u.rate=1.0;u.pitch=1.0;
+          u.onend=resolve;u.onerror=resolve;
+          window.speechSynthesis.speak(u);
+        });
+      }
+    }
+
+    // 语音识别：浏览器原生
+    function startCallSpeechRecog(){
+      if(callMuted.value||callState.value!=='active')return;
+      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+      if(!SR){
+        // 没有语音识别 → 退回文字输入模式，弹提示
+        pushCallSub('system','（此浏览器不支持语音，请用Chrome）');
+        return;
+      }
+      callSpeechRecog=new SR();
+      callSpeechRecog.lang='zh-CN';
+      callSpeechRecog.continuous=false;
+      callSpeechRecog.interimResults=false;
+      callSpeechRecog.onstart=()=>{callUserSpeaking.value=true};
+      callSpeechRecog.onresult=(e)=>{
+        const txt=e.results[e.results.length-1][0].transcript.trim();
+        if(txt){
+          callUserSpeaking.value=false;
+          pushCallSub('user',txt);
+          aiCallReply(txt);
+        }
+      };
+      callSpeechRecog.onerror=(e)=>{callUserSpeaking.value=false;if(callState.value==='active'&&!callMuted.value)startCallSpeechRecog()};
+      callSpeechRecog.onend=()=>{callUserSpeaking.value=false;if(callState.value==='active'&&!callMuted.value&&!callAiSpeaking.value)startCallSpeechRecog()};
+      callSpeechRecog.start();
+    }
+
+    async function aiCallReply(userText){
+      if(callState.value!=='active'||callAiThinking)return;
+      callAiThinking=true;
+      callAiSpeaking.value=true;
+      // 停掉语音识别，等AI说完再重启
+      callSpeechRecog?.stop();
+      const c=activeChar.value;
+      const id=c.id;
+      const recentSubs=callSubtitles.value.slice(-6).map(l=>(l.role==='user'?'用户':'角色')+'：'+l.text).join('\n');
+      const sys=`你是${c.name}，正在和用户打电话。${c.system||''}\n你们的通话记录：\n${recentSubs}\n\n用户刚说："${userText}"\n\n请回应，15-35字，口语化电话风格，符合你的性格和你们的关系（${c.relation||c.identity||''}）。\n只输出那句话，不要标签和解释。`;
+      try{
+        const raw=await callAPI([{role:'user',content:userText}],sys);
+        const text=(raw||'').replace(/```|"|\n/g,'').trim().slice(0,100);
+        if(!text||callState.value!=='active'){callAiThinking=false;callAiSpeaking.value=false;return}
+        pushCallSub('ai',text);
+        // 同时存入聊天记录
+        const now=new Date();
+        const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        if(!allMsgs.value[id])allMsgs.value[id]=[];
+        allMsgs.value[id].push({role:'assistant',content:text,bubbles:[text],whisper:null,showTrans:false,time:t,ts:now.getTime(),isCall:true});
+        saveMsgs();
+        await callTTS(text);
+      }catch(e){pushCallSub('ai','（信号断了一下……）')}
+      finally{callAiThinking=false;callAiSpeaking.value=false}
+      // AI 说完再重启识别
+      if(callState.value==='active'&&!callMuted.value)startCallSpeechRecog();
+    }
+
+    function toggleCallMute(){
+      callMuted.value=!callMuted.value;
+      if(callMuted.value){
+        callSpeechRecog?.stop();
+        callUserSpeaking.value=false;
+      }else{
+        startCallSpeechRecog();
+      }
+    }
+
+    function endCall(){
+      if(!activeChar.value)return;
+      // 写一条通话记录到聊天
+      const id=activeChar.value.id;
+      const now=new Date();
+      const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      const dur=callTimerStr.value;
+      if(!allMsgs.value[id])allMsgs.value[id]=[];
+      allMsgs.value[id].push({role:'system',content:`📞 通话结束 · ${dur}`,time:t,ts:now.getTime(),isCallRecord:true});
+      saveMsgs();
+      stopCallAll();
+      callState.value='idle';
+    }
+
+    function stopCallAll(){
+      clearInterval(callTimerInterval);
+      callSpeechRecog?.stop();
+      callSpeechRecog=null;
+      if(callTtsAudio){callTtsAudio.pause();callTtsAudio=null}
+      window.speechSynthesis?.cancel();
+      callAiSpeaking.value=false;
+      callUserSpeaking.value=false;
+      callAiThinking=false;
+    }
+
+
+    // ════ AI自动撤回 ════
+    function maybeAiRecall(msg,id){
+      const lastRecall=parseInt(localStorage.getItem('lastRecall_'+id)||'0');
+      if(Date.now()-lastRecall<5*60*1000)return;
+      const triggers=['喜欢你','爱你','想你','表白','对不起','我错了','哈哈哈哈哈哈','shit','fuck','i like you','i love you'];
+      const hit=triggers.some(t=>msg.content.toLowerCase().includes(t.toLowerCase()));
+      const random=Math.random()<0.03;
+      if(!hit&&!random)return;
+      localStorage.setItem('lastRecall_'+id,String(Date.now()));
+      const delay=3000+Math.random()*5000;
+      setTimeout(()=>{
+        const msgs=allMsgs.value[id]||[];
+        const idx=msgs.findIndex(m=>m.ts===msg.ts);
+        if(idx<0)return;
+        const original=msgs[idx].content;
+        msgs[idx].retracted=true;
+        msgs[idx].recalledContent=original;
+        msgs[idx].content=(activeChar.value?.name||'对方')+'撤回了一条消息';
+        saveMsgs();
+      },delay);
+    }
+
 
     // AI主动回复
     async function triggerAiReply(){
@@ -3826,9 +4578,12 @@ const minimaxVoices=ref([]);
         const sys=buildSystemPrompt('');const hist=buildHistory(id);const raw=await callAPI(hist,sys);
         const parsed=parseReplyMulti(raw);
         const n2=new Date();const t2=`${String(n2.getHours()).padStart(2,'0')}:${String(n2.getMinutes()).padStart(2,'0')}`;
-        allMsgs.value[id].push({role:'assistant',content:parsed.bubbles.join('\n'),bubbles:parsed.bubbles,translations:parsed.translations||null,whisper:parsed.whisper||null,showTrans:false,time:t2,ts:n2.getTime()});
+        const cleanedB2=(parsed.bubbles||[]).map(b=>parseAiTags(b,id));
+        allMsgs.value[id].push({role:'assistant',content:cleanedB2.join('\n'),bubbles:cleanedB2,translations:parsed.translations||null,whisper:parsed.whisper||null,showTrans:false,time:t2,ts:n2.getTime()});
         saveMsgs();checkAutoSummarize(id);
-        speakBubbles(parsed.bubbles);
+        speakBubbles(cleanedB2);
+        const lastM=allMsgs.value[id][allMsgs.value[id].length-1];
+        if(lastM&&lastM.role==='assistant')maybeAiRecall(lastM,id);
       }catch(e){allMsgs.value[id].push({role:'assistant',content:'⚠️ '+e.message,bubbles:['⚠️ '+e.message],time:T.value,ts:Date.now()});saveMsgs()}
       finally{typing.value=false;await nextTick(scrollB)}
     }
@@ -4029,7 +4784,10 @@ function buildSystemPrompt(userMsg=''){
 2. translations和messages一一对应，每条是对应那句的中文翻译
 3. 禁止OOC，发言必须100%符合角色性格设定
 4. whisper必须是中文
-5. 只输出JSON，不输出任何其他内容`;
+5. 只输出JSON，不输出任何其他内容
+6. 【特殊标签（可选）】如需使用，追加在最后一条message末尾：
+   [SET_NICKNAME:xxx] → 修改你通讯录里对用户的备注名（关系发生重要变化时才用，如从陌生人变成朋友）
+   [BLOCK_USER] → 你决定拉黑用户（极端情绪下才用，拉黑后用户消息显示发送失败）`;
       return sys;
     }
 
@@ -4075,30 +4833,65 @@ function parseReply(raw){
       const el=inputEl.value;
       const txt=el?el.innerText.trim():'';
       if(!txt||typing.value)return;
+      if(isBlockedByAi.value){
+        // 被拉黑：消息照发但标记发送失败
+        if(el){el.innerText='';hasInput.value=false}
+        const now=new Date();
+        const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        const id=activeChar.value.id;
+        if(!allMsgs.value[id])allMsgs.value[id]=[];
+        allMsgs.value[id].push({role:'user',content:txt,time:t,ts:now.getTime(),blocked:true,quoteRef:quotingMsg.value||null});
+        quotingMsg.value=null;
+        saveMsgs();await nextTick(scrollB);
+        return;
+      }
       if(el){el.innerText='';hasInput.value=false}
       const now=new Date();
       const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
       const id=activeChar.value.id;
       if(!allMsgs.value[id])allMsgs.value[id]=[];
-      allMsgs.value[id].push({role:'user',content:txt,time:t,ts:now.getTime()});
+      // 保存引用信息
+      const qRef=quotingMsg.value?{role:quotingMsg.value.role,content:quotingMsg.value.content,bubbles:quotingMsg.value.bubbles,ts:quotingMsg.value.ts}:null;
+      allMsgs.value[id].push({role:'user',content:txt,time:t,ts:now.getTime(),quoteRef:qRef});
+      quotingMsg.value=null;
       saveMsgs();await nextTick(scrollB);
+      clearPatienceTimer();
       typing.value=true;await nextTick(scrollB);
       try{
-        const sys=buildSystemPrompt(txt);
+        // 获取行程和NPC（异步，不阻塞发送）
+        const [scheduleStr,npcStr]=await Promise.all([
+          generateTodaySchedule(id),
+          generateNpcEvents(id)
+        ]);
+        let sys=buildSystemPrompt(txt);
+        if(scheduleStr)sys+=`\n\n【${activeChar.value.name}今日行程与状态】\n${scheduleStr}`;
+        if(npcStr)sys+=`\n\n【${activeChar.value.name}身边人今日动态】\n${npcStr}`;
+        // 引用上下文注入
+        if(qRef){
+          const quoteRole=qRef.role==='user'?'用户':(activeChar.value?.name||'角色');
+          const quoteTxt=(qRef.bubbles?qRef.bubbles.join(' '):qRef.content).slice(0,60);
+          sys+=`\n\n【用户正在引用回复以下这条消息，请结合引用内容回应】\n${quoteRole}说：「${quoteTxt}」`;
+        }
         const hist=buildHistory(id);
         const raw=await callAPI(hist,sys);
-        const{content,translation,whisper}=parseReply(raw);
         const parsed2=parseReplyMulti(raw);
         const n2=new Date();
         const t2=`${String(n2.getHours()).padStart(2,'0')}:${String(n2.getMinutes()).padStart(2,'0')}`;
-        allMsgs.value[id].push({role:'assistant',content:parsed2.bubbles.join('\n'),bubbles:parsed2.bubbles,translations:parsed2.translations||null,whisper:parsed2.whisper||null,showTrans:false,time:t2,ts:n2.getTime()});
-        // 标记用户消息为已读
+        // 解析特殊标签
+        const cleanedBubbles=(parsed2.bubbles||[]).map(b=>parseAiTags(b,id));
+        allMsgs.value[id].push({role:'assistant',content:cleanedBubbles.join('\n'),bubbles:cleanedBubbles,translations:parsed2.translations||null,whisper:parsed2.whisper||null,showTrans:false,time:t2,ts:n2.getTime()});
         allMsgs.value[id].forEach(m=>{if(m.role==='user')m.read=true});
         saveMsgs();
         checkAutoSummarize(id);
-        speakBubbles(parsed2.bubbles);
+        speakBubbles(cleanedBubbles);
         maybeReverseCheck(activeChar.value);
-
+        // AI自动撤回检测
+        const lastAiMsg=allMsgs.value[id][allMsgs.value[id].length-1];
+        if(lastAiMsg&&lastAiMsg.role==='assistant')maybeAiRecall(lastAiMsg,id);
+        // 角色发图检测（不阻塞）
+        maybeGenerateImage(txt,id);
+        // 重启patience计时器
+        startPatienceTimer();
       }catch(e){
         allMsgs.value[id].push({role:'assistant',content:'⚠️ '+e.message,time:T.value,ts:Date.now()});
         saveMsgs();
@@ -5685,7 +6478,7 @@ ${trigger==='user'?`用户刚说：「${userTxt}」`:'这是AI自由发言时间
     }
 
     return{
-      pg,T,D,typing,hasInput,previewImg,
+      pg,T,D,typing,hasInput,previewImg,isBlockedByAi,quotingMsg,showSearchChat,searchQuery,searchResults,
       showSt,showAdd,showEditChar,showSidebar,showEmojiPanel,
       showWhisperMask,whisperText,whisperLoading,whisperCharName,triggerWhisper,rcheckAlert,rcheckActive,rcheckChar,rcheckWhisper,rcheckBlock,rcheckAllow,rcheckFinish,rcheckGrabBack,rcheckEnd,
       activeChar,msgBox,anchor,inputEl,avInput,
@@ -5715,7 +6508,7 @@ ${trigger==='user'?`用户刚说：「${userTxt}」`:'这是AI自由发言时间
       gcOnInput,gcInsertEmoji,gcSend,gcTriggerAI,
       gcLongpressStart,gcLongpressEnd,gcShowMenu,gcRetract,gcDelete,
       triggerWhisper,send,sendImage,
-      fetchModels,openEditChar,openAdd,clearMemory,deleteChar,saveChar,uploadAvatar,
+      fetchModels,openEditChar,openAdd,clearMemory,deleteChar,saveChar,uploadAvatar,msgQuote,doSearchChat,highlightSearch,jumpToMsg,parseAiTags,setAiBlock,applyNickname,startPatienceTimer,clearPatienceTimer,generateTodaySchedule,generateNpcEvents,checkBlockedStatus,
       setWP,upWP,setChatWP,upChatWP,clearChatWP,setListWP,upListWP,clearListWP,saveSt,
       addMemoryTag,deleteMemoryTag,addMemoryItem,deleteMemoryItem,
       clearCharMemory,summarizeMemory,saveMemoryLib,
