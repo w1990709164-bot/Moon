@@ -6700,5 +6700,127 @@ ${trigger==='user'?`用户刚说：「${userTxt}」`:'这是AI自由发言时间
   }
 }).mount('#app');
 </script>
+
+<script>
+/* ===== 生图 API TypeError 兼容修复补丁 ===== */
+(function(){
+  function safeJson(raw, fallback){ try{return JSON.parse(raw)}catch(e){return fallback} }
+  function getImgApiConfig(){
+    var api = safeJson(localStorage.getItem('imgApi'), {});
+    return {
+      url: (api.url || api.imgUrl || api.baseUrl || '').trim(),
+      key: (api.key || api.apiKey || api.imgKey || '').trim(),
+      model: (api.model || api.imgModel || '').trim(),
+      positive: api.positive || api.prompt || '',
+      negative: api.negative || api.negativePrompt || ''
+    };
+  }
+  function saveImgApiConfig(cfg){
+    localStorage.setItem('imgApi', JSON.stringify(Object.assign(getImgApiConfig(), cfg || {})));
+  }
+  function normalizeImageUrl(x){
+    if(!x) return '';
+    if(typeof x === 'string'){
+      if(x.startsWith('data:image')) return x;
+      if(x.startsWith('http') || x.startsWith('blob:')) return x;
+      if(x.length > 200 && /^[A-Za-z0-9+/=]+$/.test(x.slice(0,80))) return 'data:image/png;base64,' + x;
+      return x;
+    }
+    if(x.url) return x.url;
+    if(x.b64_json) return 'data:image/png;base64,' + x.b64_json;
+    if(x.base64) return x.base64.startsWith('data:image') ? x.base64 : 'data:image/png;base64,' + x.base64;
+    if(x.image) return normalizeImageUrl(x.image);
+    return '';
+  }
+  function extractImageUrl(data){
+    if(!data) return '';
+    if(Array.isArray(data.data) && data.data.length) return normalizeImageUrl(data.data[0]);
+    if(Array.isArray(data.images) && data.images.length) return normalizeImageUrl(data.images[0]);
+    if(Array.isArray(data.output) && data.output.length) return normalizeImageUrl(data.output[0]);
+    if(data.url) return data.url;
+    if(data.image_url) return data.image_url;
+    if(data.image) return normalizeImageUrl(data.image);
+    if(data.b64_json) return 'data:image/png;base64,' + data.b64_json;
+    if(data.base64) return data.base64.startsWith('data:image') ? data.base64 : 'data:image/png;base64,' + data.base64;
+    return '';
+  }
+  function joinUrl(base, path){
+    base = String(base || '').replace(/\/+$/,'');
+    return base + '/' + String(path || '').replace(/^\/+/,'');
+  }
+  window.saveImgApiConfig = saveImgApiConfig;
+  window.getImgApiConfig = getImgApiConfig;
+  window.loadImgModels = async function(){
+    var cfg = getImgApiConfig();
+    if(!cfg.url){ alert('请先填写生图站子链接'); return []; }
+    var headers = {};
+    if(cfg.key) headers.Authorization = 'Bearer ' + cfg.key;
+    var urls = [joinUrl(cfg.url,'/v1/models'), joinUrl(cfg.url,'/models')];
+    var lastErr = null;
+    for(var i=0;i<urls.length;i++){
+      try{
+        var res = await fetch(urls[i], {headers:headers});
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        var data = await res.json();
+        var arr = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : (Array.isArray(data.models) ? data.models : []));
+        var models = arr.map(function(m){ return typeof m === 'string' ? m : (m.id || m.name || m.model || '') }).filter(Boolean);
+        if(models.length){
+          var sel = document.querySelector('#imgModel, [data-img-model], input[name="imgModel"], select[name="imgModel"]');
+          if(sel){
+            if(sel.tagName === 'SELECT'){
+              sel.innerHTML = models.map(function(m){return '<option value="'+String(m).replace(/"/g,'&quot;')+'">'+m+'</option>'}).join('');
+            }else sel.value = models[0];
+          }
+          alert('已拉取 '+models.length+' 个模型');
+          return models;
+        }
+      }catch(e){ lastErr = e; }
+    }
+    alert('拉取模型失败：'+(lastErr && lastErr.message ? lastErr.message : '返回格式不兼容'));
+    return [];
+  };
+  window.callImageApi = async function(prompt, extra){
+    var cfg = getImgApiConfig();
+    if(!cfg.url) throw new Error('请先填写生图站子链接');
+    var finalPrompt = [cfg.positive || '', prompt || ''].filter(Boolean).join(', ');
+    var negative = cfg.negative || '';
+    var headers = {'Content-Type':'application/json'};
+    if(cfg.key) headers.Authorization = 'Bearer ' + cfg.key;
+    var base = cfg.url.replace(/\/+$/,'');
+    var endpoints = [];
+    if(/\/images\/generations$/.test(base) || /\/sdapi\/v1\/txt2img$/.test(base)) endpoints.push(base);
+    endpoints.push(joinUrl(base,'/v1/images/generations'));
+    endpoints.push(joinUrl(base,'/images/generations'));
+    endpoints.push(joinUrl(base,'/sdapi/v1/txt2img'));
+    var bodies = [
+      {model: cfg.model || undefined, prompt: finalPrompt, negative_prompt: negative || undefined, n:1, size:'1024x1024'},
+      {prompt: finalPrompt, negative_prompt: negative, steps: 24, width: 768, height: 1024}
+    ];
+    var lastErr = null;
+    for(var i=0;i<endpoints.length;i++){
+      for(var j=0;j<bodies.length;j++){
+        try{
+          var res = await fetch(endpoints[i], {method:'POST', headers:headers, body:JSON.stringify(Object.assign({}, bodies[j], extra || {}))});
+          var text = await res.text();
+          var data = safeJson(text, null);
+          if(!res.ok){
+            var msg = data && (data.message || data.detail || (data.error && (data.error.message || data.error)));
+            throw new Error(msg || ('HTTP '+res.status));
+          }
+          var img = extractImageUrl(data);
+          if(img) return img;
+          throw new Error('返回里没有图片URL或base64');
+        }catch(e){ lastErr = e; }
+      }
+    }
+    throw new Error(lastErr && lastErr.message ? lastErr.message : '生图失败');
+  };
+  window.generateImageByImgApi = async function(prompt){
+    var url = await window.callImageApi(prompt);
+    return url;
+  };
+})();
+</script>
+
 </body>
 </html>
