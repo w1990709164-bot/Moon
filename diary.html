@@ -116,14 +116,14 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',Georgia,'Songti SC',
             <div class="back-btn" onclick="showHome()">←</div>
             <div class="header-title">我的日记</div>
           </div>
-          <button class="gen-btn" onclick="saveUserDiary()">保存</button>
+          <button type="button" class="gen-btn" onclick="saveUserDiary()">保存</button>
         </div>
         <div class="scroll">
           <div class="write-box">
             <textarea id="userDiaryInput" class="write-area" placeholder="今天想写点什么？"></textarea>
             <div class="write-actions">
-              <button class="btn-light" onclick="clearUserDiaryInput()">清空</button>
-              <button class="btn-dark" onclick="saveUserDiary()">保存今天</button>
+              <button type="button" class="btn-light" onclick="clearUserDiaryInput()">清空</button>
+              <button type="button" class="btn-dark" onclick="saveUserDiary()">保存今天</button>
             </div>
           </div>
           <div class="diary-list" id="userDiaryList"></div>
@@ -403,12 +403,28 @@ function openUserDiary(){
   document.getElementById('userDiaryInput').value='';
   renderUserDiaries();
 }
+
 function userDiaries(){
-  return storeGet('userDiaries',[]).slice().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+  const a = storeGet('userDiaries', []);
+  const b = storeGet('diaryUserEntries', []);
+  const merged = [];
+  const seen = {};
+  [].concat(Array.isArray(a)?a:[], Array.isArray(b)?b:[]).forEach(function(x){
+    if(!x || !x.content)return;
+    const key = (x.date||'') + '_' + (x.id||x.timestamp||'');
+    if(!seen[key]){ seen[key]=true; merged.push(x); }
+  });
+  return merged.sort((x,y)=>(y.timestamp||0)-(x.timestamp||0));
+}
+function persistUserDiaries(arr){
+  const clean = (Array.isArray(arr)?arr:[]).filter(d=>d && d.content);
+  storeSet('userDiaries', clean);
+  storeSet('diaryUserEntries', clean);
 }
 function renderUserDiaries(){
   const arr=userDiaries();
   const list=document.getElementById('userDiaryList');
+  if(!list)return;
   if(!arr.length){
     list.innerHTML='<div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-text">还没有自己的日记<br>可以从上面开始写</div></div>';
     return;
@@ -423,22 +439,27 @@ function renderUserDiaries(){
   });
 }
 function saveUserDiary(){
-  const input=document.getElementById('userDiaryInput');
-  const t=input.value.trim();
-  if(!t){
-    showToast('先写点内容吧');
-    return;
+  try{
+    const input=document.getElementById('userDiaryInput');
+    if(!input){showToast('输入框不存在');return;}
+    const t=input.value.trim();
+    if(!t){ showToast('先写点内容吧'); return; }
+    const today=todayStr();
+    const arr=userDiaries().filter(d=>d.date!==today);
+    arr.unshift({id:nowTime(),date:today,content:t,timestamp:nowTime()});
+    persistUserDiaries(arr);
+    input.value='';
+    renderUserDiaries();
+    showToast('已保存');
+  }catch(e){
+    showToast('保存失败：'+(e.message||e));
   }
-  const arr=userDiaries().filter(d=>d.date!==todayStr());
-  arr.unshift({id:nowTime(),date:todayStr(),content:t,timestamp:nowTime()});
-  storeSet('userDiaries',arr);
-  input.value='';
-  renderUserDiaries();
-  showToast('已保存');
 }
 function clearUserDiaryInput(){
-  document.getElementById('userDiaryInput').value='';
+  const input=document.getElementById('userDiaryInput');
+  if(input)input.value='';
 }
+
 
 let toastTimer=null;
 function showToast(msg){
@@ -448,6 +469,11 @@ function showToast(msg){
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>t.style.opacity='0',2600);
 }
+
+
+window.addEventListener('error', function(e){
+  try{ showToast('页面错误：' + (e.message || '未知错误')); }catch(_){}
+});
 
 window.addEventListener('DOMContentLoaded',init);
 </script>
