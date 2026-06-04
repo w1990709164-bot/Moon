@@ -1594,6 +1594,12 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
       <div class="app-card game" @click="go('gamecenter')"><div class="ic-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="5"/><circle cx="8" cy="12" r="1.2"/><circle cx="16" cy="11" r="1"/><circle cx="18.5" cy="13" r="1"/><path d="M11 12H5M8 9v6"/></svg></div><div class="ic-lbl">游戏</div></div>
       <div class="app-card d" onclick="window.location.href='diary.html'"><div class="ic-wrap"><svg viewBox="0 0 24 24"><path d="M6 3h11a2 2 0 0 1 2 2v16H7a2 2 0 0 1-2-2V4a1 1 0 0 1 1-1z"/><path d="M8 3v18"/><path d="M11 8h5"/><path d="M11 12h4"/><path d="M11 16h5"/></svg></div><div class="ic-lbl">日记</div></div>
     </div>
+    <div class="icon-row">
+      <div class="app-card p" onclick="window.location.href='dreamhouse.html'"><div class="ic-wrap"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.4 7.2 17.9l.9-5.4-3.9-3.8 5.4-.8L12 3z"/><path d="M5 21h14"/></svg></div><div class="ic-lbl">梦男之家</div></div>
+      <div class="app-card" style="opacity:0;pointer-events:none"></div>
+      <div class="app-card" style="opacity:0;pointer-events:none"></div>
+      <div class="app-card" style="opacity:0;pointer-events:none"></div>
+    </div>
   </div>
   <div class="home-dock">
     <div class="dock-ic sub" @click="showSt=true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M2 12h2M20 12h2M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M12 2v2M12 20v2"/></svg><span class="d-lbl">设置</span></div>
@@ -3718,16 +3724,27 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
         <div v-if="listWall" @click="clearListWP()" style="padding:9px 14px;background:#fff;color:#e05555;border:1px solid #e0c0c0;border-radius:10px;font-size:13px;text-align:center;cursor:pointer">清除背景</div>
       </div>
     </div>
-    <div class="ssec">角色发图（Pollinations AI，免费无需Key）</div>
+    <div class="ssec">角色生图 API</div>
     <div class="sg">
       <div class="sr" style="flex-direction:row;align-items:center;justify-content:space-between">
-        <div class="sl" style="font-size:14px;color:var(--text);margin:0">启用角色发图</div>
+        <div class="sl" style="font-size:14px;color:var(--text);margin:0">启用角色生图</div>
         <div class="toggle" :class="api.imgEnable?'on':'off'" @click="api.imgEnable=!api.imgEnable"><div class="toggle-dot"></div></div>
       </div>
       <div v-if="api.imgEnable">
-        <div class="sl" style="margin-bottom:6px">触发方式：用户说"拍张照/发个图/让我看看"等，或AI主动发图</div>
-        <div class="sl" style="margin-bottom:4px">画风提示词（可选，英文，如 cinematic, anime style）</div>
-        <input class="si" v-model="api.imgStyle" placeholder="例：cinematic photo, warm lighting"/>
+        <div class="sr"><div class="sl">站子链接 / 生图 API 地址</div><input class="si" v-model="api.imgUrl" placeholder="https://你的生图站/v1 或 /images/generations"/></div>
+        <div class="sr"><div class="sl">生图 API 密钥</div><input class="si" v-model="api.imgKey" type="password" placeholder="sk-..."/></div>
+        <div class="sr">
+          <div class="sl">生图模型</div>
+          <input class="si" v-model="api.imgModel" placeholder="手动输入或点击下方拉取"/>
+          <button class="mb ok" style="margin-top:8px" @click="fetchImgModels" :disabled="fetchingImgModels">{{ fetchingImgModels?'拉取中…':'拉取生图模型' }}</button>
+          <div class="model-list" v-if="imgModelList.length>0">
+            <div class="model-item" v-for="m in imgModelList" :key="m" :class="{selected:api.imgModel===m}" @click="api.imgModel=m">{{ m }}<svg v-if="api.imgModel===m" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+          </div>
+        </div>
+        <div class="sr"><div class="sl">正向词（会追加到角色图片 prompt 后）</div><textarea class="si" v-model="api.imgPositive" placeholder="masterpiece, best quality, cinematic lighting" style="min-height:70px;resize:vertical;line-height:1.6"></textarea></div>
+        <div class="sr"><div class="sl">负向词</div><textarea class="si" v-model="api.imgNegative" placeholder="low quality, blurry, bad anatomy" style="min-height:70px;resize:vertical;line-height:1.6"></textarea></div>
+        <div class="sr"><div class="sl">图片尺寸</div><input class="si" v-model="api.imgSize" placeholder="512x512 / 768x1024 / 1024x1024"/></div>
+        <div class="sl" style="padding:0 16px 12px;line-height:1.7">触发方式：用户说“拍张照 / 发个图 / 让我看看”等，或 AI 少量概率主动发图。图片会使用这里的生图 API，不再使用 Pollinations。</div>
       </div>
     </div>
     <button class="mb ok" @click="saveSt">保存</button>
@@ -3823,6 +3840,7 @@ createApp({
     const msgBox=ref(null),anchor=ref(null),inputEl=ref(null),avInput=ref(null);
     const previewImg=ref(null);
     const fetchingModels=ref(false),modelList=ref([]);
+    const fetchingImgModels=ref(false),imgModelList=ref([]);
     const userAvatar=ref(localStorage.getItem('userAvatar')||'');
     const memoryLib=ref(JSON.parse(localStorage.getItem('memoryLib')||'{}'));
     const memoryChar=ref('');
@@ -3836,7 +3854,7 @@ createApp({
     const chars=ref(JSON.parse(localStorage.getItem('chars')||'[]'));
     const allMsgs=ref(JSON.parse(localStorage.getItem('msgs')||'{}'));
     const gameSelectedCharId=ref(chars.value[0]?.id||'');
-    const api=ref(JSON.parse(localStorage.getItem('api')||'{"url":"","key":"","model":"","minimaxKey":"","minimaxGroup":"","imgEnable":false,"imgStyle":""}'));
+    const api=ref(Object.assign({url:'',key:'',model:'',minimaxKey:'',minimaxGroup:'',imgEnable:false,imgStyle:'',imgUrl:'',imgKey:'',imgModel:'',imgPositive:'',imgNegative:'',imgSize:'512x512'}, JSON.parse(localStorage.getItem('api')||'{}')));
     const preWP=ref(PWP);
     const emojis=ref(EMOJIS);
     const nc=ref({name:'',emoji:'🌿',avatarImg:'',realName:'',birthday:'',identity:'',relation:'',system:''});
@@ -4352,59 +4370,93 @@ const minimaxVoices=ref([]);
       return clean;
     }
 
-    // ════ Pollinations.ai 生图 ════
-    // 根据对话上下文生成 prompt，再调免费 API
+    // ════ 角色生图 API ════
+    // 根据对话上下文生成 prompt，再调用设置里的生图接口
     async function buildImgPrompt(charId){
       const c=chars.value.find(x=>x.id===charId);
       if(!c)return'';
       const msgs=allMsgs.value[charId]||[];
       const recentTxt=msgs.slice(-6).filter(m=>m.role==='user'||m.role==='assistant')
-        .map(m=>(m.role==='user'?'User':'Char')+':'+(m.bubbles?m.bubbles.join(' '):m.content).slice(0,40)).join(' | ');
-      const appearance=c.appearance||'';
-      const styleExtra=api.value.imgStyle||'';
-      // 用 AI 生成图片 prompt（简短英文描述）
+        .map(m=>(m.role==='user'?'User':'Char')+':'+(m.bubbles?m.bubbles.join(' '):m.content||'').slice(0,60)).join(' | ');
+      const appearance=c.appearance||c.identity||'';
+      const styleExtra=api.value.imgPositive||api.value.imgStyle||'';
       if(!api.value.url||!api.value.key)return null;
       try{
-        const sys=`You are a Stable Diffusion prompt writer.
-Character: ${c.name}. ${appearance?'Appearance: '+appearance+'.':''} 
-Based on the recent chat context, write a short image prompt (max 60 words) showing what the character is doing or sending right now.
-Format: [subject and action], [setting], [lighting], [style]. 
-${styleExtra?'Style must include: '+styleExtra+'.':'Photorealistic, cinematic.'}
-Only output the prompt, no explanation.`;
+        const sys=`You are a professional image prompt writer. Write one concise English prompt for image generation.
+Character: ${c.name}. ${appearance?'Appearance/persona notes: '+appearance+'.':''}
+Recent chat context: ${recentTxt||'casual daily photo'}
+Rules: focus on the character, scene, action, composition, lighting, outfit, mood, and visual style. Do not include explanation.
+${styleExtra?'Preferred positive tags/style to include naturally: '+styleExtra:''}`;
         const res=await fetch(api.value.url.replace(/\/$/,'')+'/chat/completions',{
           method:'POST',
           headers:{'Content-Type':'application/json','Authorization':'Bearer '+api.value.key},
-          body:JSON.stringify({model:api.value.model,messages:[{role:'system',content:sys},{role:'user',content:recentTxt||'casual selfie'}],stream:false,max_tokens:120})
+          body:JSON.stringify({model:api.value.model,messages:[{role:'user',content:sys}],stream:false,max_tokens:160})
         });
         const data=await res.json();
         if(data.error)return null;
-        return(data.choices?.[0]?.message?.content||'').replace(/```/g,'').trim().slice(0,300);
+        return(data.choices?.[0]?.message?.content||'').replace(/```/g,'').trim().slice(0,500);
       }catch(e){return null}
     }
 
+    function normalizeImgApiUrl(){
+      let u=(api.value.imgUrl||'').trim().replace(/\/$/,'');
+      if(!u)return'';
+      if(u.endsWith('/images/generations'))return u;
+      return u+(u.includes('/v1')?'/images/generations':'/v1/images/generations');
+    }
+
+    async function callImageApi(prompt){
+      const url=normalizeImgApiUrl();
+      const key=(api.value.imgKey||'').trim();
+      if(!url||!key)throw new Error('请先在设置里填写生图 API 地址和密钥');
+      const finalPrompt=[prompt,api.value.imgPositive||''].filter(Boolean).join(', ');
+      const body={
+        model:api.value.imgModel||undefined,
+        prompt:finalPrompt,
+        negative_prompt:api.value.imgNegative||undefined,
+        size:api.value.imgSize||'512x512',
+        n:1,
+        response_format:'url'
+      };
+      Object.keys(body).forEach(k=>body[k]===undefined&&delete body[k]);
+      const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify(body)});
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok||data.error)throw new Error(data.error?.message||data.message||('生图失败：'+res.status));
+      const item=data.data?.[0]||data.images?.[0]||data.output?.[0]||data;
+      const imgUrl=item.url||item.image_url||item.uri||item;
+      const b64=item.b64_json||item.base64||item.image_base64;
+      if(typeof imgUrl==='string'&&/^https?:|^data:image/.test(imgUrl))return imgUrl;
+      if(b64)return 'data:image/png;base64,'+b64;
+      throw new Error('生图接口没有返回图片 URL 或 base64');
+    }
+
     async function generateAndSendImage(charId){
+      if(!api.value.imgEnable)return;
       const prompt=await buildImgPrompt(charId);
       if(!prompt)return;
-      const encoded=encodeURIComponent(prompt);
-      // Pollinations.ai 免费，支持 NSFW 关闭，1024x1024
-      const url=`https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&enhance=true`;
       const now=new Date();
       const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
       if(!allMsgs.value[charId])allMsgs.value[charId]=[];
-      // 先加占位符
-      const placeholder={role:'assistant',content:'📷 正在翻相册…',bubbles:['📷 正在翻相册…'],time:t,ts:now.getTime(),isImgLoading:true};
+      const placeholder={role:'assistant',content:'📷 正在生成图片…',bubbles:['📷 正在生成图片…'],time:t,ts:now.getTime(),isImgLoading:true};
       allMsgs.value[charId].push(placeholder);
       saveMsgs();
       await nextTick(scrollB);
-      // 图片 URL 直接用（Pollinations 是同步的，URL 即图片）
-      const imgMsg={role:'assistant',type:'image',content:url,imgPrompt:prompt,time:t,ts:now.getTime()+1};
-      // 移除占位符
-      const arr=allMsgs.value[charId];
-      const pi=arr.indexOf(placeholder);
-      if(pi>=0)arr.splice(pi,1);
-      arr.push(imgMsg);
-      saveMsgs();
-      await nextTick(scrollB);
+      try{
+        const url=await callImageApi(prompt);
+        const imgMsg={role:'assistant',type:'image',content:url,imgPrompt:prompt,time:t,ts:Date.now()};
+        const arr=allMsgs.value[charId];
+        const pi=arr.indexOf(placeholder);
+        if(pi>=0)arr.splice(pi,1);
+        arr.push(imgMsg);
+        saveMsgs();
+        await nextTick(scrollB);
+      }catch(e){
+        const arr=allMsgs.value[charId];
+        const pi=arr.indexOf(placeholder);
+        if(pi>=0)arr.splice(pi,1,{role:'assistant',content:'生图失败：'+(e.message||'请检查设置'),bubbles:['生图失败：'+(e.message||'请检查设置')],time:t,ts:Date.now()});
+        saveMsgs();
+        await nextTick(scrollB);
+      }
     }
 
     // ════ 检测用户消息是否触发发图 ════
@@ -5048,6 +5100,20 @@ function triggerWhisper(charId,directWhisper){
         modelList.value=(data.data||[]).map(m=>m.id).sort();
       }catch(e){alert('拉取失败：'+e.message)}
       finally{fetchingModels.value=false}
+    }
+
+    async function fetchImgModels(){
+      if(!api.value.imgUrl||!api.value.imgKey){alert('请先填写生图 API 地址和密钥');return}
+      fetchingImgModels.value=true;imgModelList.value=[];
+      try{
+        let u=api.value.imgUrl.trim().replace(/\/$/,'');
+        if(u.endsWith('/images/generations'))u=u.replace(/\/images\/generations$/,'');
+        const res=await fetch(u.replace(/\/$/,'')+'/models',{headers:{'Authorization':'Bearer '+api.value.imgKey}});
+        const data=await res.json();
+        imgModelList.value=(data.data||data.models||[]).map(m=>typeof m==='string'?m:m.id||m.name).filter(Boolean).sort();
+        if(imgModelList.value.length===0)alert('没有拉取到模型，可以手动填写');
+      }catch(e){alert('拉取失败：'+e.message)}
+      finally{fetchingImgModels.value=false}
     }
 
     function openEditChar(){
@@ -6562,7 +6628,7 @@ ${trigger==='user'?`用户刚说：「${userTxt}」`:'这是AI自由发言时间
       activeChar,msgBox,anchor,inputEl,avInput,
       wall,wallSt,chatWall,chatWallSt,listWall,listWallSt,preWP,chars,curMsgs,api,nc,emojis,
       wipList,wipI,totalUnread,calM,todayN,weekDays,gameSelectedCharId,openGame,
-      charSettings,minimaxVoices,fetchingModels,modelList,userAvatar,
+      charSettings,minimaxVoices,fetchingModels,modelList,fetchingImgModels,imgModelList,imgModelList,userAvatar,
       memoryChar,memorySummarizing,currentMemory,memoryLib,
       allMoments,userProfile,editProfile,momentsBg,setMomentsBg,upMomentsBg,momentGenerating,
       showPostMoment,showEditProfile,newMomentText,newMomentImg,
@@ -6586,7 +6652,7 @@ ${trigger==='user'?`用户刚说：「${userTxt}」`:'这是AI自由发言时间
       gcOnInput,gcInsertEmoji,gcSend,gcTriggerAI,
       gcLongpressStart,gcLongpressEnd,gcShowMenu,gcRetract,gcDelete,
       triggerWhisper,send,sendImage,
-      fetchModels,openEditChar,openAdd,clearMemory,deleteChar,saveChar,uploadAvatar,msgQuote,doSearchChat,highlightSearch,jumpToMsg,parseAiTags,setAiBlock,applyNickname,startPatienceTimer,clearPatienceTimer,generateTodaySchedule,generateNpcEvents,checkBlockedStatus,
+      fetchModels,fetchImgModels,openEditChar,openAdd,clearMemory,deleteChar,saveChar,uploadAvatar,msgQuote,doSearchChat,highlightSearch,jumpToMsg,parseAiTags,setAiBlock,applyNickname,startPatienceTimer,clearPatienceTimer,generateTodaySchedule,generateNpcEvents,checkBlockedStatus,
       setWP,upWP,setChatWP,upChatWP,clearChatWP,setListWP,upListWP,clearListWP,saveSt,
       addMemoryTag,deleteMemoryTag,addMemoryItem,deleteMemoryItem,
       clearCharMemory,summarizeMemory,saveMemoryLib,
