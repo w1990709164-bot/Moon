@@ -4406,28 +4406,60 @@ ${styleExtra?'Preferred positive tags/style to include naturally: '+styleExtra:'
     }
 
     async function callImageApi(prompt){
-      const url=normalizeImgApiUrl();
+      function joinUrl(base,path){base=String(base||'').replace(/\/+$/,'');return base+'/'+String(path||'').replace(/^\/+/,'')}
+      function normImg(x){
+        if(!x)return'';
+        if(typeof x==='string'){
+          if(x.startsWith('data:image')||x.startsWith('http')||x.startsWith('blob:'))return x;
+          if(x.length>200&&/^[A-Za-z0-9+/=]+$/.test(x.slice(0,80)))return 'data:image/png;base64,'+x;
+          return x;
+        }
+        if(x.url)return x.url;
+        if(x.image_url)return x.image_url;
+        if(x.uri)return x.uri;
+        if(x.b64_json)return 'data:image/png;base64,'+x.b64_json;
+        if(x.base64)return x.base64.startsWith('data:image')?x.base64:'data:image/png;base64,'+x.base64;
+        if(x.image)return normImg(x.image);
+        return '';
+      }
+      function pickImg(data){
+        if(!data)return'';
+        if(Array.isArray(data.data)&&data.data.length)return normImg(data.data[0]);
+        if(Array.isArray(data.images)&&data.images.length)return normImg(data.images[0]);
+        if(Array.isArray(data.output)&&data.output.length)return normImg(data.output[0]);
+        return normImg(data);
+      }
+      const base=(api.value.imgUrl||'').trim().replace(/\/+$/,'');
       const key=(api.value.imgKey||'').trim();
-      if(!url||!key)throw new Error('请先在设置里填写生图 API 地址和密钥');
+      if(!base||!key)throw new Error('请先在设置里填写生图 API 地址和密钥');
       const finalPrompt=[prompt,api.value.imgPositive||''].filter(Boolean).join(', ');
-      const body={
-        model:api.value.imgModel||undefined,
-        prompt:finalPrompt,
-        negative_prompt:api.value.imgNegative||undefined,
-        size:api.value.imgSize||'512x512',
-        n:1,
-        response_format:'url'
-      };
-      Object.keys(body).forEach(k=>body[k]===undefined&&delete body[k]);
-      const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify(body)});
-      const data=await res.json().catch(()=>({}));
-      if(!res.ok||data.error)throw new Error(data.error?.message||data.message||('生图失败：'+res.status));
-      const item=data.data?.[0]||data.images?.[0]||data.output?.[0]||data;
-      const imgUrl=item.url||item.image_url||item.uri||item;
-      const b64=item.b64_json||item.base64||item.image_base64;
-      if(typeof imgUrl==='string'&&/^https?:|^data:image/.test(imgUrl))return imgUrl;
-      if(b64)return 'data:image/png;base64,'+b64;
-      throw new Error('生图接口没有返回图片 URL 或 base64');
+      const neg=api.value.imgNegative||'';
+      const endpoints=[];
+      if(base.endsWith('/images/generations')||base.endsWith('/sdapi/v1/txt2img'))endpoints.push(base);
+      endpoints.push(joinUrl(base,'/v1/images/generations'),joinUrl(base,'/images/generations'),joinUrl(base,'/sdapi/v1/txt2img'));
+      const bodies=[
+        {model:api.value.imgModel||undefined,prompt:finalPrompt,negative_prompt:neg||undefined,size:api.value.imgSize||'512x512',n:1,response_format:'url'},
+        {prompt:finalPrompt,negative_prompt:neg,steps:24,width:768,height:1024}
+      ];
+      let lastErr=null;
+      for(const url of endpoints){
+        for(const body0 of bodies){
+          const body={...body0};Object.keys(body).forEach(k=>body[k]===undefined&&delete body[k]);
+          try{
+            const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify(body)});
+            const text=await res.text();
+            let data={};try{data=JSON.parse(text)}catch(_){}
+            if(!res.ok||data.error){
+              const msg=data.error?.message||data.error||data.message||data.detail||('HTTP '+res.status);
+              throw new Error(msg);
+            }
+            const img=pickImg(data);
+            if(img)return img;
+            throw new Error('返回里没有图片 URL 或 base64');
+          }catch(e){lastErr=e}
+        }
+      }
+      throw new Error(lastErr?.message||'生图失败');
     }
 
     async function generateAndSendImage(charId){
@@ -5136,21 +5168,33 @@ function triggerWhisper(charId,directWhisper){
     function openAdd(){resetNc();showAdd.value=true}
     function saveChar(){
       if(!nc.value.name.trim()){alert('请填写备注名');return}
-      if(showEditChar.value){
-        const idx=chars.value.findIndex(c=>c.id===activeChar.value.id);
-        if(idx>=0){chars.value[idx]={...chars.value[idx],...nc.value};activeChar.value=chars.value[idx]}
-      }else{
-        const newChar={id:'c'+Date.now(),color:COLORS[chars.value.length%COLORS.length],unread:0,settings:{contextDepth:20,language:'zh',translateOn:false,voiceId:'',voiceProb:0},...nc.value};
-        chars.value.push(newChar);
+      const finish=()=>{resetNc();showAdd.value=false;showEditChar.value=false};
+      const doSave=()=>{
+        if(showEditChar.value){
+          const editId=(activeChar.value&&activeChar.value.id)||nc.value.id;
+          const ci=chars.value.findIndex(c=>c.id===editId);
+          if(ci>=0){
+            const merged={...chars.value[ci],...nc.value,id:editId};
+            chars.value.splice(ci,1,merged);
+            activeChar.value=merged;
+          }
+        }else{
+          const newChar={id:'c'+Date.now(),color:COLORS[chars.value.length%COLORS.length],unread:0,settings:{contextDepth:20,language:'zh',translateOn:false,voiceId:'',voiceProb:0},...nc.value};
+          chars.value.push(newChar);
+          activeChar.value=newChar;
+        }
+        saveChars();
+        finish();
+      };
+      try{doSave();}
+      catch(e){
+        // 如果是头像导致超限，先压缩当前编辑头像再保存
+        if(nc.value.avatarImg&&nc.value.avatarImg.length>60000){
+          compressImg(nc.value.avatarImg,220,(r)=>{nc.value.avatarImg=r;try{doSave()}catch(e2){alert('保存失败：'+(e2.message||e2))}});
+        }else{
+          alert('保存失败：'+(e.message||e));
+        }
       }
-      try{saveChars();}catch(e){
-        // localStorage满了，尝试压缩头像后重存
-        const last=chars.value[chars.value.length-1];
-        if(last&&last.avatarImg&&last.avatarImg.length>50000){
-          compressImg(last.avatarImg,200,(r)=>{last.avatarImg=r;try{saveChars()}catch(e2){alert('存储空间不足，建议使用较小的头像图片')}});
-        }else{alert('存储空间不足：'+e.message)}
-      }
-      resetNc();showAdd.value=false;showEditChar.value=false;
     }
     function compressImg(src,size,cb){const img=new Image();img.onload=()=>{const c=document.createElement('canvas');const s=Math.min(size,img.width,img.height);c.width=s;c.height=s;const ctx=c.getContext('2d');const sc=s/Math.min(img.width,img.height);ctx.drawImage(img,(img.width-s/sc)/2,(img.height-s/sc)/2,s/sc,s/sc,0,0,s,s);cb(c.toDataURL('image/jpeg',0.7))};img.src=src}
     function uploadAvatar(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{nc.value.avatarImg=ev.target.result};r.readAsDataURL(f);e.target.value=''}
@@ -5208,7 +5252,26 @@ function triggerWhisper(charId,directWhisper){
     onMounted(()=>{if(api.value.city)fetchWeather()});
 
     function saveSt(){localStorage.setItem('api',JSON.stringify(api.value));showSt.value=false;if(api.value.city)fetchWeather()}
-    function saveChars(){localStorage.setItem('chars',JSON.stringify(chars.value))}
+    function saveChars(){
+      try{
+        localStorage.setItem('chars',JSON.stringify(chars.value));
+      }catch(e){
+        // 头像太大时会导致 localStorage 保存失败，压缩所有大头像后再保存
+        const pending=chars.value.filter(c=>c&&c.avatarImg&&c.avatarImg.length>60000);
+        if(!pending.length)throw e;
+        let left=pending.length;
+        pending.forEach(ch=>{
+          compressImg(ch.avatarImg,220,(r)=>{
+            ch.avatarImg=r;
+            left--;
+            if(left===0){
+              try{localStorage.setItem('chars',JSON.stringify(chars.value))}
+              catch(e2){alert('存储空间不足：头像图片太大，请换更小的图片')}
+            }
+          });
+        });
+      }
+    }
     function saveMsgs(){localStorage.setItem('msgs',JSON.stringify(allMsgs.value))}
     function saveMemoryLib(){localStorage.setItem('memoryLib',JSON.stringify(memoryLib.value))}
 
@@ -5342,7 +5405,20 @@ function triggerWhisper(charId,directWhisper){
     function getCharName(id){const c=getChar(id);return c?c.name:'未知'}
     function saveMoments(){localStorage.setItem('moments',JSON.stringify(allMoments.value))}
     function saveProfile(){Object.assign(userProfile.value,editProfile.value);localStorage.setItem('userProfile',JSON.stringify(userProfile.value));showEditProfile.value=false}
-    function uploadProfileAv(e){const f=e.target.files[0];if(!f)return;const r2=new FileReader();r2.onload=ev=>{userProfile.value.avatarImg=ev.target.result;localStorage.setItem('userProfile',JSON.stringify(userProfile.value))};r2.readAsDataURL(f);e.target.value=''}
+    function uploadProfileAv(e){
+      const f=e.target.files[0];if(!f)return;
+      const r2=new FileReader();
+      r2.onload=ev=>{
+        const save=(src)=>{
+          userProfile.value.avatarImg=src;
+          try{localStorage.setItem('userProfile',JSON.stringify(userProfile.value))}
+          catch(err){alert('头像太大，已尝试压缩后仍无法保存，请换更小图片')}
+        };
+        const src=ev.target.result;
+        if(src&&src.length>60000)compressImg(src,220,save);else save(src);
+      };
+      r2.readAsDataURL(f);e.target.value='';
+    }
     function pickMomentImg(e){const f=e.target.files[0];if(!f)return;const r2=new FileReader();r2.onload=ev=>{newMomentImg.value=ev.target.result};r2.readAsDataURL(f);e.target.value=''}
     function toggleLike(m){if(m.userLiked)return;m.userLiked=true;const name=userProfile.value.name||'我';if(!m.likes.includes(name))m.likes.push(name);saveMoments()}
 
@@ -5978,19 +6054,29 @@ ${s.hotComments&&s.hotComments.length?'网友热评：\n'+s.hotComments.join('\n
       }else{invPhotoErr.value='密码错误'}
     }
       function invOpenChat(item){
-      const c=invTarget.value;
-      const uName=(userProfile.value?.name||'用户');
-      if(item.isUserChat||item.name===uName){
-        const realMsgs=(allMsgs.value[c?.id]||[]).map(m=>({
-          isMe:m.role==='assistant',
-          content:m.role==='assistant'?(m.bubbles?m.bubbles.join(' '):m.content):m.content
-        }));
-        invChatDetail.value={...item,name:uName,messages:realMsgs};
-        return;
+      try{
+        item=item||{name:'未知',messages:[]};
+        const c=invTarget.value||{};
+        const uName=(userProfile.value?.name||'用户');
+        if(item.isUserChat||item.name===uName){
+          const realMsgs=(allMsgs.value[c.id]||[]).map(m=>({
+            isMe:m.role==='assistant',
+            content:m.role==='assistant'?(m.bubbles?m.bubbles.join(' '):(m.content||'')):(m.content||'')
+          })).filter(m=>m.content);
+          invChatDetail.value={...item,name:uName,messages:realMsgs.length?realMsgs:[{isMe:false,content:'暂无可查看的聊天记录'}]};
+          return;
+        }
+        const safeMsgs=Array.isArray(item.messages)?item.messages.map(m=>({
+          ...m,
+          content:(m&&m.content!=null)?String(m.content):''
+        })).filter(m=>m.content):[];
+        invChatDetail.value={...item,name:item.name||'未知联系人',messages:safeMsgs.length?safeMsgs:[{isMe:false,content:'这里暂时没有消息'}]};
+      }catch(e){
+        invChatDetail.value={name:'消息',messages:[{isMe:false,content:'消息加载失败：'+(e.message||e)}]};
       }
-      invChatDetail.value={...item,messages:item.messages||[]};
     }
-        function invOpenGroupChat(g){
+
+    function invOpenGroupChat(g){
       // 显示群聊消息记录
       const msgs=(gcAllMsgs.value[g.id]||[]).map(m=>{
         if(m.charId==='user') return{isMe:false,content:(userProfile.value?.name||'用户')+'：'+m.content};
