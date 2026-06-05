@@ -165,157 +165,110 @@ let chars=[];
 let currentChar=null;
 let diaries=[];
 
-function safeJson(raw,fallback){
-  try{return JSON.parse(raw)}
-  catch(e){return fallback}
-}
+function safeJson(raw,fallback){try{if(raw==null||raw==='')return fallback;return JSON.parse(raw)}catch(e){return fallback}}
 function storeGet(k,f){return safeJson(localStorage.getItem(k),f)}
 function storeSet(k,v){localStorage.setItem(k,JSON.stringify(v))}
-function todayStr(){
-  const d=new Date();
-  return d.getFullYear()+'年'+String(d.getMonth()+1).padStart(2,'0')+'月'+String(d.getDate()).padStart(2,'0')+'日';
-}
+function todayStr(){const d=new Date();return d.getFullYear()+'年'+String(d.getMonth()+1).padStart(2,'0')+'月'+String(d.getDate()).padStart(2,'0')+'日'}
 function nowTime(){return Date.now()}
-function esc(s){
-  const d=document.createElement('div');
-  d.textContent=s==null?'':String(s);
-  return d.innerHTML;
-}
-function goBack(){
-  window.location.href='index.html';
-}
-function showOnly(id){
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
+function esc(s){const d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML}
+function firstNonEmpty(){for(let i=0;i<arguments.length;i++){const v=arguments[i];if(v!==undefined&&v!==null&&String(v).trim()!=='')return v}return ''}
+function goBack(){window.location.href='index.html'}
+function showOnly(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));const el=document.getElementById(id);if(el)el.classList.add('active')}
+
 function normalizeChars(raw){
   if(!Array.isArray(raw))return [];
-  return raw.filter(Boolean).map((c,i)=>({
-    id:String(c.id||c.userId||('char_'+i)),
-    name:c.name||c.realName||'TA',
-    realName:c.realName||c.name||'TA',
-    avatarImg:c.avatarImg||c.avatar||'',
-    system:c.system||c.identityInfo||c.identity||''
-  }));
+  return raw.filter(Boolean).map((c,i)=>{
+    const id=firstNonEmpty(c.id,c.userId,c.aiId,c.contactId,'char_'+i);
+    const name=firstNonEmpty(c.realName,c.name,c.nickname,c.aiName,'TA');
+    return {
+      id:String(id),
+      name:String(name),
+      realName:String(name),
+      avatarImg:firstNonEmpty(c.avatarImg,c.avatar,c.avatarUri,c.avatarUrl,c.photo,''),
+      system:firstNonEmpty(c.system,c.identityInfo,c.identity,c.persona,c.relation,'')
+    };
+  });
 }
-function showHome(){
-  currentChar=null;
-  showOnly('homeView');
-  renderBooks();
-}
-function init(){
-  chars=normalizeChars(storeGet('chars',[]));
-  renderBooks();
-}
-function renderBooks(){
-  const grid=document.getElementById('booksGrid');
-  if(!chars.length){
-    grid.innerHTML='<div class="empty">还没有角色<br>先去小手机通讯录添加联系人吧</div>';
-    return;
+function loadCharsFromStorage(){
+  const keys=['chars','contacts','aiContacts','characters','contactList'];
+  for(const k of keys){
+    const normalized=normalizeChars(storeGet(k,null));
+    if(normalized.length)return normalized;
   }
+  return [];
+}
+function showHome(){currentChar=null;showOnly('homeView');renderBooks()}
+function init(){try{chars=loadCharsFromStorage();renderBooks()}catch(e){const grid=document.getElementById('booksGrid');if(grid)grid.innerHTML='<div class="empty">日记初始化失败<br>'+esc(e.message||e)+'</div>';showToast('初始化失败：'+(e.message||e))}}
+function renderBooks(){
+  const grid=document.getElementById('booksGrid');if(!grid)return;
+  if(!chars||!chars.length){grid.innerHTML='<div class="empty">还没有读取到角色<br>请先返回小手机通讯录确认角色存在</div>';return}
   grid.innerHTML='';
   chars.forEach((c,i)=>{
-    const card=document.createElement('div');
-    card.className='book-card';
-    card.onclick=()=>openAiDiary(c.id);
-
-    const spine=document.createElement('div');
-    spine.className='book-spine';
-    spine.style.background=spineColors[i%spineColors.length];
-
-    const cover=document.createElement('div');
-    cover.className='book-cover';
-
-    const icon=document.createElement('div');
-    icon.className='book-icon';
-    if(c.avatarImg){
-      const img=document.createElement('img');
-      img.src=c.avatarImg;
-      img.onerror=()=>{icon.textContent='📔'};
-      icon.appendChild(img);
-    }else{
-      icon.textContent='📔';
-    }
-
-    const name=document.createElement('div');
-    name.className='book-name';
-    name.textContent=c.realName||c.name||'TA';
-
-    const label=document.createElement('div');
-    label.className='book-label';
-    label.textContent='的日记';
-
-    const footer=document.createElement('div');
-    footer.className='book-footer';
-    footer.textContent='点击翻阅';
-
-    cover.appendChild(icon);
-    cover.appendChild(name);
-    cover.appendChild(label);
-    card.appendChild(spine);
-    card.appendChild(cover);
-    card.appendChild(footer);
+    const card=document.createElement('div');card.className='book-card';card.onclick=()=>openAiDiary(c.id);
+    const spine=document.createElement('div');spine.className='book-spine';spine.style.background=spineColors[i%spineColors.length];
+    const cover=document.createElement('div');cover.className='book-cover';
+    const icon=document.createElement('div');icon.className='book-icon';
+    if(c.avatarImg){const img=document.createElement('img');img.src=c.avatarImg;img.onerror=()=>{icon.textContent='📔'};icon.appendChild(img)}else icon.textContent='📔';
+    const name=document.createElement('div');name.className='book-name';name.textContent=c.realName||c.name||'TA';
+    const label=document.createElement('div');label.className='book-label';label.textContent='的日记';
+    const footer=document.createElement('div');footer.className='book-footer';footer.textContent='点击翻阅';
+    cover.appendChild(icon);cover.appendChild(name);cover.appendChild(label);
+    card.appendChild(spine);card.appendChild(cover);card.appendChild(footer);
     grid.appendChild(card);
   });
 }
 
 function openAiDiary(id){
-  currentChar=chars.find(c=>String(c.id)===String(id));
-  if(!currentChar){
-    showToast('角色不存在');
-    return;
-  }
-  document.getElementById('aiTitle').textContent=(currentChar.realName||currentChar.name||'TA')+' 的日记';
-  showOnly('aiView');
-  loadDiaries();
+  try{
+    if(!chars||!chars.length)chars=loadCharsFromStorage();
+    currentChar=(chars||[]).find(c=>String(c.id)===String(id));
+    if(!currentChar){showToast('角色不存在，请返回后重试');return}
+    const title=document.getElementById('aiTitle');if(title)title.textContent=(currentChar.realName||currentChar.name||'TA')+' 的日记';
+    showOnly('aiView');loadDiaries();
+  }catch(e){showToast('打开失败：'+(e.message||e))}
 }
 function getAllAiDiaries(){return storeGet('aiDiaries',{})}
 function saveAllAiDiaries(data){storeSet('aiDiaries',data)}
 function loadDiaries(){
-  if(!currentChar)return;
+  const list=document.getElementById('diaryList');if(!list)return;
+  if(!currentChar){list.innerHTML='<div class="empty-state"><div class="empty-icon">📔</div><div class="empty-text">没有选中角色<br>请返回重新进入</div></div>';return}
   const all=getAllAiDiaries();
-  diaries=(all[currentChar.id]||[]).slice().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
-  const list=document.getElementById('diaryList');
-  if(!diaries.length){
-    list.innerHTML='<div class="empty-state"><div class="empty-icon">📔</div><div class="empty-text">还没有日记<br>点击右上角生成今天的日记</div></div>';
-    return;
-  }
+  diaries=(Array.isArray(all[currentChar.id])?all[currentChar.id]:[]).slice().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+  if(!diaries.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📔</div><div class="empty-text">还没有日记<br>点击右上角生成今天的日记</div></div>';return}
   list.innerHTML='';
   diaries.forEach((d,i)=>{
-    const card=document.createElement('div');
-    card.className='diary-card';
-    card.onclick=()=>openDetail(i,'ai');
+    const card=document.createElement('div');card.className='diary-card';card.onclick=()=>openDetail(i,'ai');
     card.innerHTML='<div class="card-header"><div><div class="card-date">'+esc(d.date)+'</div><div class="card-meta">☁ '+esc(d.weather||'晴')+' · 📍 '+esc(d.location||'未知')+'</div></div></div><div class="card-preview">'+esc((d.content||'').slice(0,120))+'…</div>';
     list.appendChild(card);
   });
 }
 
+function readChatApiConfig(){
+  const api=storeGet('api',{});
+  const app=storeGet('AppConfig',{});
+  return {
+    url:firstNonEmpty(api.url,api.apiUrl,app.apiUrl,localStorage.getItem('apiUrl'),''),
+    key:firstNonEmpty(api.key,api.apiKey,app.apiKey,localStorage.getItem('apiKey'),''),
+    model:firstNonEmpty(api.model,api.modelName,app.modelName,localStorage.getItem('modelName'),'gpt-4o')
+  };
+}
+function normalizeChatUrl(url){url=String(url||'').trim().replace(/\/+$/,'');if(!url)return '';if(url.endsWith('/chat/completions'))return url;return url+(url.includes('/v1')?'/chat/completions':'/v1/chat/completions')}
 async function generateDiary(){
-  if(!currentChar)return;
-  const today=todayStr();
-  const all=getAllAiDiaries();
-  const list=all[currentChar.id]||[];
-  if(list.some(d=>d.date===today && d.content)){
-    showTodayExistsDialog();
-    return;
-  }
-  const btn=document.getElementById('genBtn');
-  btn.disabled=true;
-  btn.textContent='生成中…';
+  if(!currentChar){showToast('没有选中角色');return}
+  const today=todayStr();const all=getAllAiDiaries();const list=Array.isArray(all[currentChar.id])?all[currentChar.id]:[];
+  if(list.some(d=>d&&d.date===today&&d.content)){showTodayExistsDialog();return}
+  const btn=document.getElementById('genBtn');if(btn){btn.disabled=true;btn.textContent='生成中…'}
   try{
-    const api=storeGet('api',{});
-    const apiUrl=(api.url||api.apiUrl||'').trim();
-    const apiKey=(api.key||api.apiKey||'').trim();
-    if(!apiUrl||!apiKey)throw new Error('请先在小手机设置里填写聊天 API 地址和密钥');
-    const model=api.model||api.modelName||'gpt-4o';
-    const msgs=storeGet('msgs',{});
+    const cfg=readChatApiConfig();const url=normalizeChatUrl(cfg.url);
+    if(!url||!cfg.key)throw new Error('请先在小手机设置里填写聊天API地址和密钥');
     const aiName=currentChar.realName||currentChar.name||'TA';
-    const chat=(msgs[currentChar.id]||[]).slice(-20).map(m=>(m.role==='user'?'你':aiName)+'：'+(m.content||'')).join('\n');
+    const msgs=storeGet('msgs',{});
+    const chatArr=Array.isArray(msgs[currentChar.id])?msgs[currentChar.id]:[];
+    const chat=chatArr.slice(-20).map(m=>{const role=(m.role==='user'||m.isFromMe===true||m.from==='me')?'你':aiName;return role+'：'+(m.content||m.text||'')}).join('\n');
     const sorted=list.slice().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
     const prev=(sorted[0]&&sorted[0].summaryForNext)||'这是第一篇日记';
     const weather=(localStorage.getItem('cyberWeather')||'晴').replace(/^"|"$/g,'');
-    const persona=currentChar.system||currentChar.identityInfo||currentChar.identity||'';
-
+    const persona=currentChar.system||'';
     const prompt=`你是 ${aiName}，请以第一人称写今天的私人日记。
 
 【你的人设】：${persona}
@@ -335,77 +288,28 @@ ${chat || '今天还没有明显聊天记录。'}
 【格式输出】：
 【日记正文】日记内容
 【次日摘要】50字以内的摘要供明天参考`;
-
-    function makeUrls(raw){
-      let u=String(raw).replace(/\/+$/,'');
-      const arr=[];
-      if(u.endsWith('/chat/completions'))arr.push(u);
-      else{
-        arr.push(u+(u.includes('/v1')?'/chat/completions':'/v1/chat/completions'));
-        arr.push(u+'/chat/completions');
-      }
-      return [...new Set(arr)];
-    }
-    let raw='',lastErr=null;
-    for(const url of makeUrls(apiUrl)){
-      try{
-        const res=await fetch(url,{
-          method:'POST',
-          headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-          body:JSON.stringify({model:model,messages:[{role:'user',content:prompt}],stream:false,max_tokens:1200})
-        });
-        const text=await res.text();
-        let data={};try{data=JSON.parse(text)}catch(_){}
-        if(!res.ok)throw new Error((data.error&&data.error.message)||data.message||data.detail||('API错误: '+res.status));
-        raw=((data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||data.content||'').trim();
-        if(raw)break;
-        throw new Error('生成内容为空');
-      }catch(e){lastErr=e}
-    }
-    if(!raw)throw lastErr||new Error('生成失败');
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},body:JSON.stringify({model:cfg.model||'gpt-4o',messages:[{role:'user',content:prompt}],stream:false})});
+    const rawText=await res.text();let data=null;try{data=JSON.parse(rawText)}catch(e){}
+    if(!res.ok){const msg=data&&(data.message||data.detail||(data.error&&(data.error.message||data.error)));throw new Error(msg||('API错误：'+res.status))}
+    const raw=(data&&data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content?data.choices[0].message.content:rawText).trim();
     const bodyMatch=raw.match(/【日记正文】([\s\S]*?)(?=【次日摘要】|$)/);
     const summaryMatch=raw.match(/【次日摘要】([\s\S]*)$/);
     const body=(bodyMatch&&bodyMatch[1]?bodyMatch[1].trim():raw);
     const summary=(summaryMatch&&summaryMatch[1]?summaryMatch[1].trim():'');
     if(!body)throw new Error('生成内容为空');
     const item={id:nowTime(),date:today,weather:weather||'晴',location:'未知',content:body,summaryForNext:summary,timestamp:nowTime()};
-    const next=(all[currentChar.id]||[]).filter(d=>d.date!==today);
-    next.unshift(item);
-    all[currentChar.id]=next;
-    saveAllAiDiaries(all);
-    loadDiaries();
-    showToast('日记生成成功');
-  }catch(e){
-    showToast(e.message||'生成失败，请重试');
-  }finally{
-    resetGenBtn();
-  }
+    const next=list.filter(d=>d&&d.date!==today);next.unshift(item);all[currentChar.id]=next;saveAllAiDiaries(all);
+    loadDiaries();showToast('日记生成成功');
+  }catch(e){showToast('生成失败：'+(e.message||e))}
+  finally{resetGenBtn()}
 }
-function resetGenBtn(){
-  const btn=document.getElementById('genBtn');
-  btn.disabled=false;
-  btn.textContent='✦ 今日日记';
-}
-function showTodayExistsDialog(){
-  document.getElementById('existsDialog').classList.add('show');
-  resetGenBtn();
-}
-function closeExistsDialog(){
-  document.getElementById('existsDialog').classList.remove('show');
-}
-function confirmRegenerate(){
-  if(!currentChar)return;
-  closeExistsDialog();
-  const all=getAllAiDiaries();
-  all[currentChar.id]=(all[currentChar.id]||[]).filter(d=>d.date!==todayStr());
-  saveAllAiDiaries(all);
-  loadDiaries();
-  setTimeout(generateDiary,200);
-}
+function resetGenBtn(){const btn=document.getElementById('genBtn');if(btn){btn.disabled=false;btn.textContent='✦ 今日日记'}}
+function showTodayExistsDialog(){const el=document.getElementById('existsDialog');if(el)el.classList.add('show');resetGenBtn()}
+function closeExistsDialog(){const el=document.getElementById('existsDialog');if(el)el.classList.remove('show')}
+function confirmRegenerate(){if(!currentChar)return;closeExistsDialog();const all=getAllAiDiaries();all[currentChar.id]=(Array.isArray(all[currentChar.id])?all[currentChar.id]:[]).filter(d=>d&&d.date!==todayStr());saveAllAiDiaries(all);loadDiaries();setTimeout(generateDiary,200)}
 
 function openDetail(i,type){
-  const d=type==='user'?userDiaries()[i]:diaries[i];
-  if(!d)return;
+  const d=type==='user'?userDiaries()[i]:diaries[i];if(!d){showToast('日记不存在');return}
   document.getElementById('detailTitle').textContent=d.date||'日记';
   document.getElementById('detailDate').textContent=d.date||'';
   document.getElementById('detailMeta').textContent=type==='user'?'我的日记':'☁ '+(d.weather||'晴')+'　📍 '+(d.location||'未知');
@@ -413,87 +317,30 @@ function openDetail(i,type){
   document.getElementById('detailOverlay').style.display='block';
   document.getElementById('detailOverlay').scrollTop=0;
 }
-function closeDetail(){
-  document.getElementById('detailOverlay').style.display='none';
-}
+function closeDetail(){const el=document.getElementById('detailOverlay');if(el)el.style.display='none'}
 
-function openUserDiary(){
-  showOnly('userView');
-  document.getElementById('userDiaryInput').value='';
-  renderUserDiaries();
-}
-
+function openUserDiary(){showOnly('userView');const input=document.getElementById('userDiaryInput');if(input)input.value='';renderUserDiaries()}
 function userDiaries(){
-  const a = storeGet('userDiaries', []);
-  const b = storeGet('diaryUserEntries', []);
-  const merged = [];
-  const seen = {};
-  [].concat(Array.isArray(a)?a:[], Array.isArray(b)?b:[]).forEach(function(x){
-    if(!x || !x.content)return;
-    const key = (x.date||'') + '_' + (x.id||x.timestamp||'');
-    if(!seen[key]){ seen[key]=true; merged.push(x); }
-  });
+  const a=storeGet('userDiaries',[]);const b=storeGet('diaryUserEntries',[]);
+  const merged=[];const seen={};
+  [].concat(Array.isArray(a)?a:[],Array.isArray(b)?b:[]).forEach(x=>{if(!x||!x.content)return;const key=(x.date||'')+'_'+(x.id||x.timestamp||'');if(!seen[key]){seen[key]=true;merged.push(x)}});
   return merged.sort((x,y)=>(y.timestamp||0)-(x.timestamp||0));
 }
-function persistUserDiaries(arr){
-  const clean = (Array.isArray(arr)?arr:[]).filter(d=>d && d.content);
-  storeSet('userDiaries', clean);
-  storeSet('diaryUserEntries', clean);
-}
+function persistUserDiaries(arr){const clean=(Array.isArray(arr)?arr:[]).filter(d=>d&&d.content);storeSet('userDiaries',clean);storeSet('diaryUserEntries',clean)}
 function renderUserDiaries(){
-  const arr=userDiaries();
-  const list=document.getElementById('userDiaryList');
-  if(!list)return;
-  if(!arr.length){
-    list.innerHTML='<div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-text">还没有自己的日记<br>可以从上面开始写</div></div>';
-    return;
-  }
+  const arr=userDiaries();const list=document.getElementById('userDiaryList');if(!list)return;
+  if(!arr.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-text">还没有自己的日记<br>可以从上面开始写</div></div>';return}
   list.innerHTML='';
-  arr.forEach((d,i)=>{
-    const card=document.createElement('div');
-    card.className='diary-card';
-    card.onclick=()=>openDetail(i,'user');
-    card.innerHTML='<div class="card-header"><div><div class="card-date">'+esc(d.date)+'</div><div class="card-meta">我的日记</div></div></div><div class="card-preview">'+esc((d.content||'').slice(0,120))+'…</div>';
-    list.appendChild(card);
-  });
+  arr.forEach((d,i)=>{const card=document.createElement('div');card.className='diary-card';card.onclick=()=>openDetail(i,'user');card.innerHTML='<div class="card-header"><div><div class="card-date">'+esc(d.date)+'</div><div class="card-meta">我的日记</div></div></div><div class="card-preview">'+esc((d.content||'').slice(0,120))+'…</div>';list.appendChild(card)});
 }
 function saveUserDiary(){
-  try{
-    const input=document.getElementById('userDiaryInput');
-    if(!input){showToast('输入框不存在');return;}
-    const t=input.value.trim();
-    if(!t){ showToast('先写点内容吧'); return; }
-    const today=todayStr();
-    const arr=userDiaries().filter(d=>d.date!==today);
-    arr.unshift({id:nowTime(),date:today,content:t,timestamp:nowTime()});
-    persistUserDiaries(arr);
-    input.value='';
-    renderUserDiaries();
-    showToast('已保存');
-  }catch(e){
-    showToast('保存失败：'+(e.message||e));
-  }
+  try{const input=document.getElementById('userDiaryInput');if(!input){showToast('输入框不存在');return}const t=input.value.trim();if(!t){showToast('先写点内容吧');return}const today=todayStr();const arr=userDiaries().filter(d=>d.date!==today);arr.unshift({id:nowTime(),date:today,content:t,timestamp:nowTime()});persistUserDiaries(arr);input.value='';renderUserDiaries();showToast('已保存')}catch(e){showToast('保存失败：'+(e.message||e))}
 }
-function clearUserDiaryInput(){
-  const input=document.getElementById('userDiaryInput');
-  if(input)input.value='';
-}
-
+function clearUserDiaryInput(){const input=document.getElementById('userDiaryInput');if(input)input.value=''}
 
 let toastTimer=null;
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.style.opacity='1';
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.style.opacity='0',2600);
-}
-
-
-window.addEventListener('error', function(e){
-  try{ showToast('页面错误：' + (e.message || '未知错误')); }catch(_){}
-});
-
+function showToast(msg){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.style.opacity='1';clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.style.opacity='0',3600)}
+window.addEventListener('error',function(e){try{showToast('页面错误：'+(e.message||'未知错误'))}catch(_){}})
 window.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
