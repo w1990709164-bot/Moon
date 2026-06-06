@@ -139,30 +139,6 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
 .ic-lbl{font-size:10px;font-weight:300;letter-spacing:.2px}
 .app-card.p .ic-lbl{color:var(--text-mid)}
 .app-card.m .ic-lbl,.app-card.d .ic-lbl{color:rgba(255,255,255,.78)}
-.app-card.game{background:var(--glass-pale);backdrop-filter:var(--blur);border:1px solid rgba(168,188,150,.38);box-shadow:0 2px 12px rgba(50,68,36,.06)}
-.app-card.game .ic-wrap svg{stroke:var(--sage)}
-.app-card.game .ic-lbl{color:var(--text-mid)}
-
-/* ════ 游戏中心 ════ */
-.game-view{position:absolute;inset:0;display:flex;flex-direction:column;background:#1a1a2e;color:#fff;overflow:hidden}
-.game-nav{height:52px;background:#12122a;display:flex;align-items:center;padding:0 14px;flex-shrink:0;position:relative;border-bottom:1px solid rgba(255,255,255,.04)}
-.game-back{background:none;border:none;color:#fff;cursor:pointer;padding:4px 10px 4px 0;display:flex;align-items:center}
-.game-back svg{width:10px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.game-title{position:absolute;left:60px;right:60px;text-align:center;font-size:17px;font-weight:600;letter-spacing:.3px;color:#fff}
-.game-body{flex:1;overflow-y:auto;padding:16px;background:#1a1a2e}
-.game-body::-webkit-scrollbar{display:none}
-.game-section-label{font-size:13px;color:#888;margin:0 0 10px 2px;letter-spacing:.2px}
-.game-select{width:100%;height:48px;border-radius:12px;background:#252540;color:#fff;border:1px solid #7c83fd;padding:0 14px;font-family:inherit;font-size:14px;outline:none;margin-bottom:24px}
-.game-select option{background:#252540;color:#fff}
-.game-empty{padding:16px;border-radius:14px;background:#252540;color:#888;font-size:13px;line-height:1.8;text-align:center;margin-bottom:18px}
-.game-card{display:flex;align-items:center;gap:14px;background:#252540;border-radius:14px;padding:16px;margin-bottom:10px;cursor:pointer;transition:transform .12s,background .12s;border:1px solid rgba(255,255,255,.03)}
-.game-card:active{transform:scale(.985);background:#2b2b4a}
-.game-card-icon{width:56px;height:56px;border-radius:12px;background:#1a1a3e;display:flex;align-items:center;justify-content:center;font-size:34px;flex-shrink:0}
-.game-card-info{flex:1;min-width:0}
-.game-card-name{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px}
-.game-card-desc{font-size:12px;color:#888;line-height:1.55;white-space:pre-line}
-.game-card-play{font-size:16px;color:#7c83fd;padding-left:6px}
-
 
 /* ════ 聊天列表 ════ */
 .wv{position:absolute;inset:0;display:flex;flex-direction:column;background:#f5f4f0;isolation:isolate}
@@ -219,7 +195,7 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
 .cd-name{font-size:15px;font-weight:500;flex:1;color:var(--text);letter-spacing:.3px}
 .cd-menu{background:none;border:none;cursor:pointer;color:var(--text-soft);padding:4px;display:flex;flex-direction:column;gap:3.5px;align-items:center}
 .cd-menu-line{width:17px;height:1.5px;background:var(--text-soft);border-radius:1px}
-.cd-call-btn{background:none;border:none;cursor:pointer;color:var(--sage);padding:4px 8px 4px 4px;display:flex;align-items:center;transition:opacity .15s;position:relative;z-index:20}
+.cd-call-btn{background:none;border:none;cursor:pointer;color:var(--sage);padding:4px 8px 4px 4px;display:flex;align-items:center;transition:opacity .15s}
 .cd-call-btn:active{opacity:.6}
 .cd-call-btn svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
 
@@ -1591,12 +1567,6 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
     <div class="icon-row">
       <div class="app-card p" @click="go('mailbox')"><div class="ic-wrap"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div><div class="ic-lbl">匿名信箱</div></div>
       <div class="app-card m" @click="go('blindbox')"><div class="ic-wrap"><svg viewBox="0 0 24 24"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div><div class="ic-lbl">每日盲盒</div></div>
-      <div class="app-card game" @click="go('gamecenter')"><div class="ic-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="5"/><circle cx="8" cy="12" r="1.2"/><circle cx="16" cy="11" r="1"/><circle cx="18.5" cy="13" r="1"/><path d="M11 12H5M8 9v6"/></svg></div><div class="ic-lbl">游戏</div></div>
-      <div class="app-card d" onclick="window.location.href='diary.html'"><div class="ic-wrap"><svg viewBox="0 0 24 24"><path d="M6 3h11a2 2 0 0 1 2 2v16H7a2 2 0 0 1-2-2V4a1 1 0 0 1 1-1z"/><path d="M8 3v18"/><path d="M11 8h5"/><path d="M11 12h4"/><path d="M11 16h5"/></svg></div><div class="ic-lbl">日记</div></div>
-    </div>
-    <div class="icon-row">
-      <div class="app-card p" onclick="window.location.href='dreamhouse.html'"><div class="ic-wrap"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.4 7.2 17.9l.9-5.4-3.9-3.8 5.4-.8L12 3z"/><path d="M5 21h14"/></svg></div><div class="ic-lbl">梦男之家</div></div>
-      <div class="app-card" style="opacity:0;pointer-events:none"></div>
       <div class="app-card" style="opacity:0;pointer-events:none"></div>
       <div class="app-card" style="opacity:0;pointer-events:none"></div>
     </div>
@@ -2290,36 +2260,6 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
   </div>
 </div>
 
-
-<!-- ════ 游戏中心 ════ -->
-<transition name="slide">
-<div class="game-view" v-if="pg==='gamecenter'">
-  <div class="sb light" style="background:#12122a"><span>{{ T }}</span><div class="sb-r"><div class="sig"><i></i><i></i><i></i><i></i></div><span style="font-size:10px">▲</span><div class="bat"><div class="bat-f"></div></div></div></div>
-  <div class="game-nav">
-    <button class="game-back" @click="pg='home'"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
-    <div class="game-title">🎮 游戏中心</div>
-  </div>
-  <div class="game-body">
-    <div class="game-section-label">选择一起玩的角色</div>
-    <select class="game-select" v-model="gameSelectedCharId" v-if="chars.length>0">
-      <option v-for="c in chars" :key="c.id" :value="c.id">{{ c.realName || c.name }}</option>
-    </select>
-    <div class="game-empty" v-else>还没有角色。先去通讯录新建角色，游戏里才能让 TA 陪你一起玩。</div>
-
-    <div class="game-section-label">选择游戏</div>
-    <div class="game-card" @click="openGame('truthdare')">
-      <div class="game-card-icon">💌</div>
-      <div class="game-card-info">
-        <div class="game-card-name">真心话大冒险</div>
-        <div class="game-card-desc">恋人牌局 · 掷骰抽卡
-真心话 / 大冒险 / AI 陪玩回应</div>
-      </div>
-      <div class="game-card-play">▶</div>
-    </div>
-  </div>
-</div>
-</transition>
-
 <!-- ════ WIP占位 ════ -->
 <transition name="slide">
 <div class="wip" v-if="wipList.includes(pg)&&pg!=='memorylib'&&pg!=='moments'&&pg!=='profile'&&pg!=='music'&&pg!=='worldbook'&&pg!=='calendar'&&pg!=='forum'&&pg!=='door'&&pg!=='meet'&&pg!=='invasion'&&pg!=='blindbox'&&pg!=='mailbox'&&pg!=='groupchat'">
@@ -2774,6 +2714,13 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
     </button>
   </div>
 
+  <!-- 文风参考横滚条 -->
+  <div class="meet-style-bar">
+    <div class="meet-style-chip" :class="{on:meetStyle===''}" @click="meetStyle=''">默认</div>
+    <div class="meet-style-chip" v-for="s in meetStylePresets" :key="s.key"
+      :class="{on:meetStyle===s.key}" @click="meetStyle=s.key">{{ s.label }}</div>
+  </div>
+
   <div class="meet-msgs" ref="meetMsgBox">
     <template v-for="(item,idx) in meetCurrentBlocks" :key="item.id">
       <div class="meet-scene-sep" v-if="item.type==='sep'">
@@ -2797,6 +2744,18 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
           <span>{{ item.role==='user'?(userProfile.name||'我'):doorActiveChar&&doorActiveChar.name }}</span>
         </div>
         <div class="meet-block-text">{{ item.content }}</div>
+        <!-- 操作按钮（悬浮右上角） -->
+        <div class="meet-block-menu" :class="{'menu-show':meetBlockMenuIdx===idx}">
+          <button class="meet-block-menu-btn" v-if="item.role==='assistant'" @click.stop="meetRegenBlock(idx)" title="重生回复">
+            <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.86"/></svg>
+          </button>
+          <button class="meet-block-menu-btn" @click.stop="meetQuickDelete(idx)" title="删除">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+          <button class="meet-block-menu-btn" @click.stop="meetLongpressBlock=idx;meetEditText=item.content;meetBlockMenuIdx=null" title="编辑">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+        </div>
       </div>
     </template>
     <div class="meet-typing" v-if="meetTyping">
@@ -2808,6 +2767,10 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
 
   <div class="meet-ibar" @click.stop>
     <div class="meet-ibar-row">
+      <!-- 重生最后一条AI回复 -->
+      <div class="meet-regen-btn" @click.stop="meetRegenLast()" :style="{opacity:meetTyping?.4:1}" title="重生上一条AI回复">
+        <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.86"/></svg>
+      </div>
       <div class="meet-input-wrap" contenteditable="true" ref="meetInputEl"
         data-placeholder="说点什么，或描述你的动作…"
         @input="meetOnInput"
@@ -2855,8 +2818,32 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
       </div>
       <div class="meet-settings-actions">
         <button class="meet-action-btn primary" @click="meetStartNew">开始新的见面</button>
-        <button class="meet-action-btn danger" @click="meetEndMeeting" v-if="meetCurrentSession">结束本次见面并保存记忆</button>
+        <button class="meet-action-btn primary" @click="meetOpenSummary" v-if="meetCurrentSession" style="background:var(--sage)">📝 总结本次见面</button>
+        <button class="meet-action-btn danger" @click="meetEndMeeting" v-if="meetCurrentSession">结束并保存记忆</button>
         <button class="meet-action-btn neutral" @click="meetShowSettings=false">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 总结弹窗 -->
+  <div class="meet-summary-mask" v-if="meetShowSummary" @click.self="meetShowSummary=false">
+    <div class="meet-summary-sheet" @click.stop>
+      <div class="meet-summary-handle"></div>
+      <div class="meet-summary-title">📝 本次见面总结</div>
+      <div class="meet-summary-body">
+        <div class="meet-summary-generating" v-if="meetSummarizing">
+          <div class="dots" style="justify-content:center;display:flex;gap:6px;margin-bottom:10px"><s style="background:var(--sage-mid);width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s infinite"></s><s style="background:var(--sage-mid);width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s .2s infinite"></s><s style="background:var(--sage-mid);width:7px;height:7px;border-radius:50%;display:block;animation:bnc 1.2s .4s infinite"></s></div>
+          AI 正在压缩记忆…
+        </div>
+        <div v-else>
+          <div class="meet-summary-text" v-if="meetSummaryText">{{ meetSummaryText }}</div>
+          <div class="meet-summary-generating" v-else>暂无内容，先进行一段见面再来总结吧</div>
+        </div>
+      </div>
+      <div class="meet-summary-actions">
+        <button class="mb ok" @click="meetSaveSummaryToMemory" :disabled="!meetSummaryText||meetSummarizing">✓ 写入记忆并结束见面</button>
+        <button class="mb ok" style="background:var(--sage-mid)" @click="meetOpenSummary" :disabled="meetSummarizing">↺ 重新生成</button>
+        <button class="mb no" @click="meetShowSummary=false">取消</button>
       </div>
     </div>
   </div>
@@ -3367,7 +3354,7 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
 <div class="gc-view" v-if="pg==='groupchat'">
   <div class="sb dark"><span>{{ T }}</span><div class="sb-r"><div class="sig"><i></i><i></i><i></i><i></i></div><span style="font-size:10px">▲</span><div class="bat"><div class="bat-f" style="background:var(--sage)"></div></div></div></div>
   <div class="gc-list-nav">
-    <button class="gc-list-back" @click="go('contacts')"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
+    <button class="gc-list-back" @click="go('wechat')"><svg viewBox="0 0 10 16"><path d="M8 2L2 8l6 6"/></svg></button>
     <div class="gc-list-title">群聊</div>
     <button class="gc-list-add" @click="gcShowCreate=true"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
   </div>
@@ -3396,6 +3383,7 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
       <div class="gc-nav-av" v-else-if="gcActiveGroup.avatarImg"><img :src="gcActiveGroup.avatarImg"></div>
       <div class="gc-nav-av" v-else>{{ gcAvatars(gcActiveGroup)[0]&&gcAvatars(gcActiveGroup)[0].emoji||'👥' }}</div>
       <div class="gc-nav-name">{{ gcActiveGroup.name }}</div>
+      <button @click.stop="gcShowTrans=!gcShowTrans" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--sage);padding:4px 6px;border-radius:8px;border:1px solid var(--sage)" :style="{background:gcShowTrans?'var(--sage)':'none',color:gcShowTrans?'#fff':'var(--sage)'}">译</button>
       <button class="gc-nav-menu" @click.stop="gcShowSettings=true"><div class="gc-nav-menu-line"></div><div class="gc-nav-menu-line"></div><div class="gc-nav-menu-line"></div></button>
     </div>
     <div class="gc-msgs" ref="gcMsgBox" @click="gcShowEmojiPanel=false">
@@ -3724,27 +3712,16 @@ html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;backgroun
         <div v-if="listWall" @click="clearListWP()" style="padding:9px 14px;background:#fff;color:#e05555;border:1px solid #e0c0c0;border-radius:10px;font-size:13px;text-align:center;cursor:pointer">清除背景</div>
       </div>
     </div>
-    <div class="ssec">角色生图 API</div>
+    <div class="ssec">角色发图（Pollinations AI，免费无需Key）</div>
     <div class="sg">
       <div class="sr" style="flex-direction:row;align-items:center;justify-content:space-between">
-        <div class="sl" style="font-size:14px;color:var(--text);margin:0">启用角色生图</div>
+        <div class="sl" style="font-size:14px;color:var(--text);margin:0">启用角色发图</div>
         <div class="toggle" :class="api.imgEnable?'on':'off'" @click="api.imgEnable=!api.imgEnable"><div class="toggle-dot"></div></div>
       </div>
       <div v-if="api.imgEnable">
-        <div class="sr"><div class="sl">站子链接 / 生图 API 地址</div><input class="si" v-model="api.imgUrl" placeholder="https://你的生图站/v1 或 /images/generations"/></div>
-        <div class="sr"><div class="sl">生图 API 密钥</div><input class="si" v-model="api.imgKey" type="password" placeholder="sk-..."/></div>
-        <div class="sr">
-          <div class="sl">生图模型</div>
-          <input class="si" v-model="api.imgModel" placeholder="手动输入或点击下方拉取"/>
-          <button class="mb ok" style="margin-top:8px" @click="fetchImgModels" :disabled="fetchingImgModels">{{ fetchingImgModels?'拉取中…':'拉取生图模型' }}</button>
-          <div class="model-list" v-if="imgModelList.length>0">
-            <div class="model-item" v-for="m in imgModelList" :key="m" :class="{selected:api.imgModel===m}" @click="api.imgModel=m">{{ m }}<svg v-if="api.imgModel===m" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
-          </div>
-        </div>
-        <div class="sr"><div class="sl">正向词（会追加到角色图片 prompt 后）</div><textarea class="si" v-model="api.imgPositive" placeholder="masterpiece, best quality, cinematic lighting" style="min-height:70px;resize:vertical;line-height:1.6"></textarea></div>
-        <div class="sr"><div class="sl">负向词</div><textarea class="si" v-model="api.imgNegative" placeholder="low quality, blurry, bad anatomy" style="min-height:70px;resize:vertical;line-height:1.6"></textarea></div>
-        <div class="sr"><div class="sl">图片尺寸</div><input class="si" v-model="api.imgSize" placeholder="512x512 / 768x1024 / 1024x1024"/></div>
-        <div class="sl" style="padding:0 16px 12px;line-height:1.7">触发方式：用户说“拍张照 / 发个图 / 让我看看”等，或 AI 少量概率主动发图。图片会使用这里的生图 API，不再使用 Pollinations。</div>
+        <div class="sl" style="margin-bottom:6px">触发方式：用户说"拍张照/发个图/让我看看"等，或AI主动发图</div>
+        <div class="sl" style="margin-bottom:4px">画风提示词（可选，英文，如 cinematic, anime style）</div>
+        <input class="si" v-model="api.imgStyle" placeholder="例：cinematic photo, warm lighting"/>
       </div>
     </div>
     <button class="mb ok" @click="saveSt">保存</button>
@@ -3840,7 +3817,6 @@ createApp({
     const msgBox=ref(null),anchor=ref(null),inputEl=ref(null),avInput=ref(null);
     const previewImg=ref(null);
     const fetchingModels=ref(false),modelList=ref([]);
-    const fetchingImgModels=ref(false),imgModelList=ref([]);
     const userAvatar=ref(localStorage.getItem('userAvatar')||'');
     const memoryLib=ref(JSON.parse(localStorage.getItem('memoryLib')||'{}'));
     const memoryChar=ref('');
@@ -3853,8 +3829,7 @@ createApp({
     const listWallSt=computed(()=>listWall.value?{backgroundImage:`url(${listWall.value})`,backgroundSize:'cover',backgroundPosition:'center'}:{});
     const chars=ref(JSON.parse(localStorage.getItem('chars')||'[]'));
     const allMsgs=ref(JSON.parse(localStorage.getItem('msgs')||'{}'));
-    const gameSelectedCharId=ref(chars.value[0]?.id||'');
-    const api=ref(Object.assign({url:'',key:'',model:'',minimaxKey:'',minimaxGroup:'',imgEnable:false,imgStyle:'',imgUrl:'',imgKey:'',imgModel:'',imgPositive:'',imgNegative:'',imgSize:'512x512'}, JSON.parse(localStorage.getItem('api')||'{}')));
+    const api=ref(JSON.parse(localStorage.getItem('api')||'{"url":"","key":"","model":"","minimaxKey":"","minimaxGroup":"","imgEnable":false,"imgStyle":""}'));
     const preWP=ref(PWP);
     const emojis=ref(EMOJIS);
     const nc=ref({name:'',emoji:'🌿',avatarImg:'',realName:'',birthday:'',identity:'',relation:'',system:''});
@@ -3870,7 +3845,6 @@ const minimaxVoices=ref([]);
     const currentMemory=computed(()=>memoryLib.value[memoryChar.value]||[]);
     // 初始化memoryChar
     if(chars.value.length>0&&!memoryChar.value)memoryChar.value=chars.value[0].id;
-    if(chars.value.length>0&&!gameSelectedCharId.value)gameSelectedCharId.value=chars.value[0].id;
 
     const charSettings=computed(()=>{
       if(!activeChar.value)return{contextDepth:20,language:'zh',translateOn:false,voiceId:'',voiceProb:0};
@@ -4099,21 +4073,6 @@ const minimaxVoices=ref([]);
         ttsAudio.onended=()=>{URL.revokeObjectURL(url);ttsAudio=null};
       }catch(e){console.error('TTS error:',e)}
     }
-    function openGame(id){
-      const selected=chars.value.find(c=>c.id===gameSelectedCharId.value)||chars.value[0]||null;
-      if(selected){
-        localStorage.setItem('gameSelectedAi',JSON.stringify({
-          id:selected.id||'',
-          name:selected.realName||selected.name||'TA',
-          avatar:selected.avatarImg||'',
-          persona:selected.system||selected.identity||selected.relation||'',
-          lang:(selected.settings&&selected.settings.language)||'zh'
-        }));
-      }
-      const q=selected?('?aiId='+encodeURIComponent(selected.id||'')) : '';
-      if(id==='truthdare') window.location.href='games/truthdare.html'+q;
-    }
-
     function openChat(c){
       activeChar.value=c;
       c.unread=0;saveChars();
@@ -4161,7 +4120,7 @@ const minimaxVoices=ref([]);
           if(forumDetailPost.value)forumDetailPost.value=null;
           else pg.value='home';
         }
-        else if(pg.value==='mailbox'||pg.value==='invasion'||pg.value==='blindbox'||pg.value==='door'||pg.value==='groupchat'||pg.value==='gamecenter')pg.value='home';
+        else if(pg.value==='mailbox'||pg.value==='invasion'||pg.value==='blindbox'||pg.value==='door'||pg.value==='groupchat')pg.value='home';
       }
     }
 
@@ -4370,125 +4329,65 @@ const minimaxVoices=ref([]);
       return clean;
     }
 
-    // ════ 角色生图 API ════
-    // 根据对话上下文生成 prompt，再调用设置里的生图接口
+    // ════ Pollinations.ai 生图 ════
+    // 根据对话上下文生成 prompt，再调免费 API
     async function buildImgPrompt(charId){
       const c=chars.value.find(x=>x.id===charId);
       if(!c)return'';
       const msgs=allMsgs.value[charId]||[];
       const recentTxt=msgs.slice(-6).filter(m=>m.role==='user'||m.role==='assistant')
-        .map(m=>(m.role==='user'?'User':'Char')+':'+(m.bubbles?m.bubbles.join(' '):m.content||'').slice(0,60)).join(' | ');
-      const appearance=c.appearance||c.identity||'';
-      const styleExtra=api.value.imgPositive||api.value.imgStyle||'';
+        .map(m=>(m.role==='user'?'User':'Char')+':'+(m.bubbles?m.bubbles.join(' '):m.content).slice(0,40)).join(' | ');
+      const appearance=c.appearance||'';
+      const styleExtra=api.value.imgStyle||'';
+      // 用 AI 生成图片 prompt（简短英文描述）
       if(!api.value.url||!api.value.key)return null;
       try{
-        const sys=`You are a professional image prompt writer. Write one concise English prompt for image generation.
-Character: ${c.name}. ${appearance?'Appearance/persona notes: '+appearance+'.':''}
-Recent chat context: ${recentTxt||'casual daily photo'}
-Rules: focus on the character, scene, action, composition, lighting, outfit, mood, and visual style. Do not include explanation.
-${styleExtra?'Preferred positive tags/style to include naturally: '+styleExtra:''}`;
+        const sys=`You are a Stable Diffusion prompt writer.
+Character: ${c.name}. ${appearance?'Appearance: '+appearance+'.':''} 
+Based on the recent chat context, write a short image prompt (max 60 words) showing what the character is doing or sending right now.
+Format: [subject and action], [setting], [lighting], [style]. 
+${styleExtra?'Style must include: '+styleExtra+'.':'Photorealistic, cinematic.'}
+Only output the prompt, no explanation.`;
         const res=await fetch(api.value.url.replace(/\/$/,'')+'/chat/completions',{
           method:'POST',
           headers:{'Content-Type':'application/json','Authorization':'Bearer '+api.value.key},
-          body:JSON.stringify({model:api.value.model,messages:[{role:'user',content:sys}],stream:false,max_tokens:160})
+          body:JSON.stringify({model:api.value.model,messages:[{role:'system',content:sys},{role:'user',content:recentTxt||'casual selfie'}],stream:false,max_tokens:120})
         });
         const data=await res.json();
         if(data.error)return null;
-        return(data.choices?.[0]?.message?.content||'').replace(/```/g,'').trim().slice(0,500);
+        return(data.choices?.[0]?.message?.content||'').replace(/```/g,'').trim().slice(0,300);
       }catch(e){return null}
     }
 
-    function normalizeImgApiUrl(){
-      let u=(api.value.imgUrl||'').trim().replace(/\/$/,'');
-      if(!u)return'';
-      if(u.endsWith('/images/generations'))return u;
-      return u+(u.includes('/v1')?'/images/generations':'/v1/images/generations');
-    }
-
-    async function callImageApi(prompt){
-      function joinUrl(base,path){base=String(base||'').replace(/\/+$/,'');return base+'/'+String(path||'').replace(/^\/+/,'')}
-      function normImg(x){
-        if(!x)return'';
-        if(typeof x==='string'){
-          if(x.startsWith('data:image')||x.startsWith('http')||x.startsWith('blob:'))return x;
-          if(x.length>200&&/^[A-Za-z0-9+/=]+$/.test(x.slice(0,80)))return 'data:image/png;base64,'+x;
-          return x;
-        }
-        if(x.url)return x.url;
-        if(x.image_url)return x.image_url;
-        if(x.uri)return x.uri;
-        if(x.b64_json)return 'data:image/png;base64,'+x.b64_json;
-        if(x.base64)return x.base64.startsWith('data:image')?x.base64:'data:image/png;base64,'+x.base64;
-        if(x.image)return normImg(x.image);
-        return '';
-      }
-      function pickImg(data){
-        if(!data)return'';
-        if(Array.isArray(data.data)&&data.data.length)return normImg(data.data[0]);
-        if(Array.isArray(data.images)&&data.images.length)return normImg(data.images[0]);
-        if(Array.isArray(data.output)&&data.output.length)return normImg(data.output[0]);
-        return normImg(data);
-      }
-      const base=(api.value.imgUrl||'').trim().replace(/\/+$/,'');
-      const key=(api.value.imgKey||'').trim();
-      if(!base||!key)throw new Error('请先在设置里填写生图 API 地址和密钥');
-      const finalPrompt=[prompt,api.value.imgPositive||''].filter(Boolean).join(', ');
-      const neg=api.value.imgNegative||'';
-      const endpoints=[];
-      if(base.endsWith('/images/generations')||base.endsWith('/sdapi/v1/txt2img'))endpoints.push(base);
-      endpoints.push(joinUrl(base,'/v1/images/generations'),joinUrl(base,'/images/generations'),joinUrl(base,'/sdapi/v1/txt2img'));
-      const bodies=[
-        {model:api.value.imgModel||undefined,prompt:finalPrompt,negative_prompt:neg||undefined,size:api.value.imgSize||'512x512',n:1,response_format:'url'},
-        {prompt:finalPrompt,negative_prompt:neg,steps:24,width:768,height:1024}
-      ];
-      let lastErr=null;
-      for(const url of endpoints){
-        for(const body0 of bodies){
-          const body={...body0};Object.keys(body).forEach(k=>body[k]===undefined&&delete body[k]);
-          try{
-            const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify(body)});
-            const text=await res.text();
-            let data={};try{data=JSON.parse(text)}catch(_){}
-            if(!res.ok||data.error){
-              const msg=data.error?.message||data.error||data.message||data.detail||('HTTP '+res.status);
-              throw new Error(msg);
-            }
-            const img=pickImg(data);
-            if(img)return img;
-            throw new Error('返回里没有图片 URL 或 base64');
-          }catch(e){lastErr=e}
-        }
-      }
-      throw new Error(lastErr?.message||'生图失败');
-    }
-
     async function generateAndSendImage(charId){
-      if(!api.value.imgEnable)return;
-      const prompt=await buildImgPrompt(charId);
-      if(!prompt)return;
+      let prompt=await buildImgPrompt(charId);
+      // Bug7: buildImgPrompt 失败时用角色描述兜底
+      if(!prompt){
+        const c=chars.value.find(x=>x.id===charId);
+        if(!c)return;
+        prompt=(c.appearance||c.name||'person')+', casual photo, natural lighting, realistic';
+      }
+      const encoded=encodeURIComponent(prompt);
+      // Pollinations.ai，加 seed 避免缓存，加 nologo
+      const seed=Math.floor(Math.random()*99999);
+      const url=`https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&enhance=true&seed=${seed}`;
       const now=new Date();
       const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
       if(!allMsgs.value[charId])allMsgs.value[charId]=[];
-      const placeholder={role:'assistant',content:'📷 正在生成图片…',bubbles:['📷 正在生成图片…'],time:t,ts:now.getTime(),isImgLoading:true};
+      // 先加占位符
+      const placeholder={role:'assistant',content:'📷 正在翻相册…',bubbles:['📷 正在翻相册…'],time:t,ts:now.getTime(),isImgLoading:true};
       allMsgs.value[charId].push(placeholder);
       saveMsgs();
       await nextTick(scrollB);
-      try{
-        const url=await callImageApi(prompt);
-        const imgMsg={role:'assistant',type:'image',content:url,imgPrompt:prompt,time:t,ts:Date.now()};
-        const arr=allMsgs.value[charId];
-        const pi=arr.indexOf(placeholder);
-        if(pi>=0)arr.splice(pi,1);
-        arr.push(imgMsg);
-        saveMsgs();
-        await nextTick(scrollB);
-      }catch(e){
-        const arr=allMsgs.value[charId];
-        const pi=arr.indexOf(placeholder);
-        if(pi>=0)arr.splice(pi,1,{role:'assistant',content:'生图失败：'+(e.message||'请检查设置'),bubbles:['生图失败：'+(e.message||'请检查设置')],time:t,ts:Date.now()});
-        saveMsgs();
-        await nextTick(scrollB);
-      }
+      // 图片 URL 直接用（Pollinations 是同步的，URL 即图片）
+      const imgMsg={role:'assistant',type:'image',content:url,imgPrompt:prompt,time:t,ts:now.getTime()+1,imgError:false};
+      // 移除占位符
+      const arr=allMsgs.value[charId];
+      const pi=arr.indexOf(placeholder);
+      if(pi>=0)arr.splice(pi,1);
+      arr.push(imgMsg);
+      saveMsgs();
+      await nextTick(scrollB);
     }
 
     // ════ 检测用户消息是否触发发图 ════
@@ -4886,6 +4785,19 @@ function buildSystemPrompt(userMsg=''){
       const timeSlot=nowH>=5&&nowH<9?'清晨（5-9点）':nowH>=9&&nowH<12?'上午（9-12点）':nowH>=12&&nowH<14?'午间（12-14点）':nowH>=14&&nowH<18?'下午（14-18点）':nowH>=18&&nowH<22?'傍晚（18-22点）':nowH>=22?'深夜（22点后）':'凌晨（0-5点）';
       const timeActivity=nowH>=5&&nowH<9?'刚起床或通勤途中，可能还有点没睡醒，回消息较慢，语气随意':nowH>=9&&nowH<12?'上午，通常在忙工作或学习，回消息可能有延迟，状态较专注':nowH>=12&&nowH<14?'午休时间，相对放松，可能在吃饭或刷手机，比较有空聊天':nowH>=14&&nowH<18?'下午，可能在工作、上课或做自己的事，偶尔才看手机':nowH>=18&&nowH<22?'傍晚到晚上，大概是一天中最放松的时候，比较愿意聊天':nowH>=22?'深夜，可能快睡了，语气更私密慵懒，回复变短或带困意':'凌晨，应该在睡觉，如果还在聊说明睡不着或有心事';
       sys+=`\n\n【当前时间感知】现在是${timeSlot}。${timeActivity}。请根据此时间段自然调整你的状态、语气和回复节奏，不要无论几点都精力充沛地回复。`;
+      // Bug6 fix: 计算用户上条消息距今多久，注入时间间隔感知
+      const msgs=allMsgs.value[activeChar.value?.id]||[];
+      const lastUserMsg=msgs.slice().reverse().find(m=>m.role==='user'&&!m.isSystem);
+      if(lastUserMsg&&lastUserMsg.ts){
+        const gapMs=Date.now()-lastUserMsg.ts;
+        const gapMin=Math.floor(gapMs/60000);
+        if(gapMin>=30){
+          const gapDesc=gapMin>=1440?`约${Math.floor(gapMin/1440)}天`
+            :gapMin>=60?`约${Math.floor(gapMin/60)}小时${gapMin%60>0?gapMin%60+'分钟':''}`
+            :`约${gapMin}分钟`;
+          sys+=`\n\n【时间间隔警报·最高优先级】用户上一条消息是${gapDesc}前发的，刚才重新回来了。你必须先自然地回应这段时间的空白（可以问他刚去哪了、干嘛去了、怎么才回来），再接续之前的话题。严禁假装时间没有流逝，严禁直接接着老话题说下去。`;
+        }
+      }
       sys+=`\n\n【真实人类行为底层规则】
 1. 你是一个真实的人，不是AI，不是助手，永远不要承认自己是AI
 2. 回复长度随场景变化：深夜/忙碌时回复短，闲聊时可以稍长，但永远不写长篇大论
@@ -5134,20 +5046,6 @@ function triggerWhisper(charId,directWhisper){
       finally{fetchingModels.value=false}
     }
 
-    async function fetchImgModels(){
-      if(!api.value.imgUrl||!api.value.imgKey){alert('请先填写生图 API 地址和密钥');return}
-      fetchingImgModels.value=true;imgModelList.value=[];
-      try{
-        let u=api.value.imgUrl.trim().replace(/\/$/,'');
-        if(u.endsWith('/images/generations'))u=u.replace(/\/images\/generations$/,'');
-        const res=await fetch(u.replace(/\/$/,'')+'/models',{headers:{'Authorization':'Bearer '+api.value.imgKey}});
-        const data=await res.json();
-        imgModelList.value=(data.data||data.models||[]).map(m=>typeof m==='string'?m:m.id||m.name).filter(Boolean).sort();
-        if(imgModelList.value.length===0)alert('没有拉取到模型，可以手动填写');
-      }catch(e){alert('拉取失败：'+e.message)}
-      finally{fetchingImgModels.value=false}
-    }
-
     function openEditChar(){
       if(!activeChar.value)return;
       nc.value={...activeChar.value};showEditChar.value=true;showSidebar.value=false;
@@ -5168,33 +5066,21 @@ function triggerWhisper(charId,directWhisper){
     function openAdd(){resetNc();showAdd.value=true}
     function saveChar(){
       if(!nc.value.name.trim()){alert('请填写备注名');return}
-      const finish=()=>{resetNc();showAdd.value=false;showEditChar.value=false};
-      const doSave=()=>{
-        if(showEditChar.value){
-          const editId=(activeChar.value&&activeChar.value.id)||nc.value.id;
-          const ci=chars.value.findIndex(c=>c.id===editId);
-          if(ci>=0){
-            const merged={...chars.value[ci],...nc.value,id:editId};
-            chars.value.splice(ci,1,merged);
-            activeChar.value=merged;
-          }
-        }else{
-          const newChar={id:'c'+Date.now(),color:COLORS[chars.value.length%COLORS.length],unread:0,settings:{contextDepth:20,language:'zh',translateOn:false,voiceId:'',voiceProb:0},...nc.value};
-          chars.value.push(newChar);
-          activeChar.value=newChar;
-        }
-        saveChars();
-        finish();
-      };
-      try{doSave();}
-      catch(e){
-        // 如果是头像导致超限，先压缩当前编辑头像再保存
-        if(nc.value.avatarImg&&nc.value.avatarImg.length>60000){
-          compressImg(nc.value.avatarImg,220,(r)=>{nc.value.avatarImg=r;try{doSave()}catch(e2){alert('保存失败：'+(e2.message||e2))}});
-        }else{
-          alert('保存失败：'+(e.message||e));
-        }
+      if(showEditChar.value){
+        const idx=chars.value.findIndex(c=>c.id===activeChar.value.id);
+        if(idx>=0){chars.value[idx]={...chars.value[idx],...nc.value};activeChar.value=chars.value[idx]}
+      }else{
+        const newChar={id:'c'+Date.now(),color:COLORS[chars.value.length%COLORS.length],unread:0,settings:{contextDepth:20,language:'zh',translateOn:false,voiceId:'',voiceProb:0},...nc.value};
+        chars.value.push(newChar);
       }
+      try{saveChars();}catch(e){
+        // localStorage满了，尝试压缩头像后重存
+        const last=chars.value[chars.value.length-1];
+        if(last&&last.avatarImg&&last.avatarImg.length>50000){
+          compressImg(last.avatarImg,200,(r)=>{last.avatarImg=r;try{saveChars()}catch(e2){alert('存储空间不足，建议使用较小的头像图片')}});
+        }else{alert('存储空间不足：'+e.message)}
+      }
+      resetNc();showAdd.value=false;showEditChar.value=false;
     }
     function compressImg(src,size,cb){const img=new Image();img.onload=()=>{const c=document.createElement('canvas');const s=Math.min(size,img.width,img.height);c.width=s;c.height=s;const ctx=c.getContext('2d');const sc=s/Math.min(img.width,img.height);ctx.drawImage(img,(img.width-s/sc)/2,(img.height-s/sc)/2,s/sc,s/sc,0,0,s,s);cb(c.toDataURL('image/jpeg',0.7))};img.src=src}
     function uploadAvatar(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{nc.value.avatarImg=ev.target.result};r.readAsDataURL(f);e.target.value=''}
@@ -5252,26 +5138,7 @@ function triggerWhisper(charId,directWhisper){
     onMounted(()=>{if(api.value.city)fetchWeather()});
 
     function saveSt(){localStorage.setItem('api',JSON.stringify(api.value));showSt.value=false;if(api.value.city)fetchWeather()}
-    function saveChars(){
-      try{
-        localStorage.setItem('chars',JSON.stringify(chars.value));
-      }catch(e){
-        // 头像太大时会导致 localStorage 保存失败，压缩所有大头像后再保存
-        const pending=chars.value.filter(c=>c&&c.avatarImg&&c.avatarImg.length>60000);
-        if(!pending.length)throw e;
-        let left=pending.length;
-        pending.forEach(ch=>{
-          compressImg(ch.avatarImg,220,(r)=>{
-            ch.avatarImg=r;
-            left--;
-            if(left===0){
-              try{localStorage.setItem('chars',JSON.stringify(chars.value))}
-              catch(e2){alert('存储空间不足：头像图片太大，请换更小的图片')}
-            }
-          });
-        });
-      }
-    }
+    function saveChars(){localStorage.setItem('chars',JSON.stringify(chars.value))}
     function saveMsgs(){localStorage.setItem('msgs',JSON.stringify(allMsgs.value))}
     function saveMemoryLib(){localStorage.setItem('memoryLib',JSON.stringify(memoryLib.value))}
 
@@ -5405,20 +5272,7 @@ function triggerWhisper(charId,directWhisper){
     function getCharName(id){const c=getChar(id);return c?c.name:'未知'}
     function saveMoments(){localStorage.setItem('moments',JSON.stringify(allMoments.value))}
     function saveProfile(){Object.assign(userProfile.value,editProfile.value);localStorage.setItem('userProfile',JSON.stringify(userProfile.value));showEditProfile.value=false}
-    function uploadProfileAv(e){
-      const f=e.target.files[0];if(!f)return;
-      const r2=new FileReader();
-      r2.onload=ev=>{
-        const save=(src)=>{
-          userProfile.value.avatarImg=src;
-          try{localStorage.setItem('userProfile',JSON.stringify(userProfile.value))}
-          catch(err){alert('头像太大，已尝试压缩后仍无法保存，请换更小图片')}
-        };
-        const src=ev.target.result;
-        if(src&&src.length>60000)compressImg(src,220,save);else save(src);
-      };
-      r2.readAsDataURL(f);e.target.value='';
-    }
+    function uploadProfileAv(e){const f=e.target.files[0];if(!f)return;const r2=new FileReader();r2.onload=ev=>{userProfile.value.avatarImg=ev.target.result;localStorage.setItem('userProfile',JSON.stringify(userProfile.value))};r2.readAsDataURL(f);e.target.value=''}
     function pickMomentImg(e){const f=e.target.files[0];if(!f)return;const r2=new FileReader();r2.onload=ev=>{newMomentImg.value=ev.target.result};r2.readAsDataURL(f);e.target.value=''}
     function toggleLike(m){if(m.userLiked)return;m.userLiked=true;const name=userProfile.value.name||'我';if(!m.likes.includes(name))m.likes.push(name);saveMoments()}
 
@@ -5907,6 +5761,30 @@ ${s.hotComments&&s.hotComments.length?'网友热评：\n'+s.hotComments.join('\n
     const meetTimePresets=['清晨','上午','正午','下午','傍晚','深夜'];
     const meetVibePresets=['日常温馨','暧昧拉扯','久别重逢','争执和好','安静陪伴','雨天偶遇'];
     const meetConfig=ref({context:'',location:'',time:'',vibe:''});
+    // 文风参考
+    const meetStyle=ref('');
+    const meetStylePresets=[
+      {key:'literary',label:'文学叙事'},
+      {key:'tense',label:'张力拉扯'},
+      {key:'sweet',label:'甜文轻松'},
+      {key:'silent',label:'克制留白'},
+      {key:'poetic',label:'诗意朦胧'},
+      {key:'drama',label:'戏剧冲突'},
+    ];
+    const MEET_STYLE_PROMPTS={
+      literary:'用文学散文笔法，句子长短交错，意象丰富，重视环境与内心的交融，克制但有力。',
+      tense:'强调情感张力与暧昧拉扯，动作描写细腻，空气中似乎有什么没说出口，欲言又止。',
+      sweet:'轻松温馨甜宠风格，对话活泼，有小玩笑和温柔的细节，让人读了会嘴角上扬。',
+      silent:'极简克制，大量留白，只写关键动作和一两句话，情感藏在字里行间，不直白表达。',
+      poetic:'带有诗意和朦胧感，用光影、声音、气味等感官细节营造氛围，语言优美如散文诗。',
+      drama:'戏剧性强，情绪起伏大，冲突明显，角色反应激烈，适合争执、惊喜、重逢等场景。',
+    };
+    // 总结弹窗
+    const meetShowSummary=ref(false);
+    const meetSummarizing=ref(false);
+    const meetSummaryText=ref('');
+    // block 操作菜单
+    const meetBlockMenuIdx=ref(null);
     const meetCurrentBlocks=computed(()=>meetCurrentSession.value?meetCurrentSession.value.blocks||[]:[]);
     function saveDoorMeetings(){localStorage.setItem('doorMeetings',JSON.stringify(doorMeetings.value))}
     function doorOpenChar(c){
@@ -5953,7 +5831,7 @@ ${s.hotComments&&s.hotComments.length?'网友热评：\n'+s.hotComments.join('\n
         const data=await res.json();if(data.error)throw new Error(data.error.message);
         const text=(data.choices?.[0]?.message?.content||'').trim();
         if(text){meetCurrentSession.value.blocks.push({id:'b'+Date.now(),type:'msg',role:'assistant',content:text,ts:Date.now()});saveDoorMeetings()}
-      }catch(e){if(meetCurrentSession.value)meetCurrentSession.value.blocks.push({id:'b'+Date.now(),type:'msg',role:'assistant',content:'⚠️ '+e.message,ts:Date.now()});saveDoorMeetings()}
+      }catch(e){const em=e.message||'';const fe=em.includes('quota')||em.includes('exceeded')?'API 配额已用完，请检查余额或换 Key。':em.includes('401')?'API Key 无效，请在设置里重填。':em.includes('network')||em.includes('timeout')?'网络超时，请重试。':'⚠️ '+em;if(meetCurrentSession.value)meetCurrentSession.value.blocks.push({id:'b'+Date.now(),type:'msg',role:'assistant',content:fe,ts:Date.now()});saveDoorMeetings()}
       finally{meetTyping.value=false;await nextTick(()=>{if(meetAnchor.value)meetAnchor.value.scrollIntoView({behavior:'smooth'})})}
     }
     async function meetEndMeeting(){
@@ -6027,7 +5905,7 @@ ${s.hotComments&&s.hotComments.length?'网友热评：\n'+s.hotComments.join('\n
           if(c&&api.value.url&&api.value.key){
             const cid=c.id;if(!allMsgs.value[cid])allMsgs.value[cid]=[];
             const now=new Date();const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-            fetch(api.value.url.replace(/\/$/,'')+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+api.value.key},body:JSON.stringify({model:api.value.model,messages:[{role:'system',content:(c.system||'你是'+c.name+'。')+'用户试图入侵你手机，你察觉了，发一条消息表示怀疑，15-30字，符合角色性格，只输出消息内容。'},{role:'user',content:'生成消息'}],stream:false,max_tokens:80})}).then(r=>r.json()).then(data=>{const reply=(data.choices?.[0]?.message?.content||'').trim();if(reply){allMsgs.value[cid].push({role:'assistant',content:reply,time:t,ts:Date.now()});c.unread=(c.unread||0)+1;saveChars();saveMsgs()}}).catch(()=>{});
+            fetch(api.value.url.replace(/\/$/,'')+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+api.value.key},body:JSON.stringify({model:api.value.model,messages:[{role:'system',content:(c.system||'你是'+c.name+'。')+'用户试图入侵你手机，你察觉了，发一条消息表示怀疑，15-30字，符合角色性格，用角色母语发言（设定里是外语角色就用外语），只输出消息内容。'},{role:'user',content:'生成消息'}],stream:false,max_tokens:80})}).then(r=>r.json()).then(data=>{const reply=(data.choices?.[0]?.message?.content||'').trim();if(reply){allMsgs.value[cid].push({role:'assistant',content:reply,time:t,ts:Date.now()});c.unread=(c.unread||0)+1;saveChars();saveMsgs()}}).catch(()=>{});
           }
         }else{await new Promise(r=>setTimeout(r,300));invPhase.value='phone';invLoadAllData()}
       }else{invPwdErr.value='密码错误，请重试';setTimeout(()=>{invPwdErr.value=''},2000)}
@@ -6054,29 +5932,23 @@ ${s.hotComments&&s.hotComments.length?'网友热评：\n'+s.hotComments.join('\n
       }else{invPhotoErr.value='密码错误'}
     }
       function invOpenChat(item){
-      try{
-        item=item||{name:'未知',messages:[]};
-        const c=invTarget.value||{};
-        const uName=(userProfile.value?.name||'用户');
-        if(item.isUserChat||item.name===uName){
-          const realMsgs=(allMsgs.value[c.id]||[]).map(m=>({
-            isMe:m.role==='assistant',
-            content:m.role==='assistant'?(m.bubbles?m.bubbles.join(' '):(m.content||'')):(m.content||'')
-          })).filter(m=>m.content);
-          invChatDetail.value={...item,name:uName,messages:realMsgs.length?realMsgs:[{isMe:false,content:'暂无可查看的聊天记录'}]};
-          return;
-        }
-        const safeMsgs=Array.isArray(item.messages)?item.messages.map(m=>({
-          ...m,
-          content:(m&&m.content!=null)?String(m.content):''
-        })).filter(m=>m.content):[];
-        invChatDetail.value={...item,name:item.name||'未知联系人',messages:safeMsgs.length?safeMsgs:[{isMe:false,content:'这里暂时没有消息'}]};
-      }catch(e){
-        invChatDetail.value={name:'消息',messages:[{isMe:false,content:'消息加载失败：'+(e.message||e)}]};
+      const c=invTarget.value;
+      const uName=(userProfile.value?.name||'用户');
+      if(item.isUserChat||item.name===uName){
+        const realMsgs=(allMsgs.value[c?.id]||[]).map(m=>({
+          isMe:m.role==='assistant',
+          content:m.role==='assistant'?(m.bubbles?m.bubbles.join(' '):m.content):m.content
+        }));
+        invChatDetail.value={...item,name:uName,messages:realMsgs};
+        return;
       }
+      // Bug9: messages 为空时生成兜底内容
+      const msgs=item.messages&&item.messages.length>0?item.messages:[
+        {isMe:false,content:item.lastMsg||'（暂无记录）'},
+      ];
+      invChatDetail.value={...item,messages:msgs};
     }
-
-    function invOpenGroupChat(g){
+        function invOpenGroupChat(g){
       // 显示群聊消息记录
       const msgs=(gcAllMsgs.value[g.id]||[]).map(m=>{
         if(m.charId==='user') return{isMe:false,content:(userProfile.value?.name||'用户')+'：'+m.content};
@@ -6675,8 +6547,7 @@ ${trigger==='user'?`用户刚说：「${userTxt}」`:'这是AI自由发言时间
           const c=participants.find(x=>x.name===item.name)||participants[pi];
           if(!c||!item.content)continue;
           gcAllMsgs.value[gid].push({charId:c.id,content:item.content.trim(),time:t,ts:Date.now()+pi,retracted:false});
-          if(!allMsgs.value[c.id])allMsgs.value[c.id]=[];
-          allMsgs.value[c.id].push({role:'assistant',content:`[群聊${g.name}] ${item.content.trim()}`,time:t,ts:Date.now()+pi});
+          // Bug3 fix: 不再把群聊发言写入私聊记录，避免串台
         }
         gcSaveMsgs();saveMsgs();
         if(arr.length>0){const last=arr[arr.length-1];const lc=participants.find(x=>x.name===last?.name)||participants[participants.length-1];gcActiveGroup.value.lastMsg=(lc?.name||'')+'：'+(last?.content||'').slice(0,15);gcActiveGroup.value.lastTime=t;gcSaveGroups();}
@@ -6704,7 +6575,11 @@ ${trigger==='user'?`用户刚说：「${userTxt}」`:'这是AI自由发言时间
         invChatDetail.value={...item,name:userName,messages:realMsgs};
         return;
       }
-      invChatDetail.value={...item,messages:item.messages||[]};
+      // Bug9: messages 为空时生成兜底内容
+      const msgs=item.messages&&item.messages.length>0?item.messages:[
+        {isMe:false,content:item.lastMsg||'（暂无记录）'},
+      ];
+      invChatDetail.value={...item,messages:msgs};
     }
 
     return{
@@ -6713,8 +6588,8 @@ ${trigger==='user'?`用户刚说：「${userTxt}」`:'这是AI自由发言时间
       showWhisperMask,whisperText,whisperLoading,whisperCharName,triggerWhisper,rcheckAlert,rcheckActive,rcheckChar,rcheckWhisper,rcheckBlock,rcheckAllow,rcheckFinish,rcheckGrabBack,rcheckEnd,
       activeChar,msgBox,anchor,inputEl,avInput,
       wall,wallSt,chatWall,chatWallSt,listWall,listWallSt,preWP,chars,curMsgs,api,nc,emojis,
-      wipList,wipI,totalUnread,calM,todayN,weekDays,gameSelectedCharId,openGame,
-      charSettings,minimaxVoices,fetchingModels,modelList,fetchingImgModels,imgModelList,imgModelList,userAvatar,
+      wipList,wipI,totalUnread,calM,todayN,weekDays,
+      charSettings,minimaxVoices,fetchingModels,modelList,userAvatar,
       memoryChar,memorySummarizing,currentMemory,memoryLib,
       allMoments,userProfile,editProfile,momentsBg,setMomentsBg,upMomentsBg,momentGenerating,
       showPostMoment,showEditProfile,newMomentText,newMomentImg,
@@ -6738,7 +6613,7 @@ ${trigger==='user'?`用户刚说：「${userTxt}」`:'这是AI自由发言时间
       gcOnInput,gcInsertEmoji,gcSend,gcTriggerAI,
       gcLongpressStart,gcLongpressEnd,gcShowMenu,gcRetract,gcDelete,
       triggerWhisper,send,sendImage,
-      fetchModels,fetchImgModels,openEditChar,openAdd,clearMemory,deleteChar,saveChar,uploadAvatar,msgQuote,doSearchChat,highlightSearch,jumpToMsg,parseAiTags,setAiBlock,applyNickname,startPatienceTimer,clearPatienceTimer,generateTodaySchedule,generateNpcEvents,checkBlockedStatus,
+      fetchModels,openEditChar,openAdd,clearMemory,deleteChar,saveChar,uploadAvatar,msgQuote,doSearchChat,highlightSearch,jumpToMsg,parseAiTags,setAiBlock,applyNickname,startPatienceTimer,clearPatienceTimer,generateTodaySchedule,generateNpcEvents,checkBlockedStatus,
       setWP,upWP,setChatWP,upChatWP,clearChatWP,setListWP,upListWP,clearListWP,saveSt,
       addMemoryTag,deleteMemoryTag,addMemoryItem,deleteMemoryItem,
       clearCharMemory,summarizeMemory,saveMemoryLib,
@@ -6786,127 +6661,5 @@ ${trigger==='user'?`用户刚说：「${userTxt}」`:'这是AI自由发言时间
   }
 }).mount('#app');
 </script>
-
-<script>
-/* ===== 生图 API TypeError 兼容修复补丁 ===== */
-(function(){
-  function safeJson(raw, fallback){ try{return JSON.parse(raw)}catch(e){return fallback} }
-  function getImgApiConfig(){
-    var api = safeJson(localStorage.getItem('imgApi'), {});
-    return {
-      url: (api.url || api.imgUrl || api.baseUrl || '').trim(),
-      key: (api.key || api.apiKey || api.imgKey || '').trim(),
-      model: (api.model || api.imgModel || '').trim(),
-      positive: api.positive || api.prompt || '',
-      negative: api.negative || api.negativePrompt || ''
-    };
-  }
-  function saveImgApiConfig(cfg){
-    localStorage.setItem('imgApi', JSON.stringify(Object.assign(getImgApiConfig(), cfg || {})));
-  }
-  function normalizeImageUrl(x){
-    if(!x) return '';
-    if(typeof x === 'string'){
-      if(x.startsWith('data:image')) return x;
-      if(x.startsWith('http') || x.startsWith('blob:')) return x;
-      if(x.length > 200 && /^[A-Za-z0-9+/=]+$/.test(x.slice(0,80))) return 'data:image/png;base64,' + x;
-      return x;
-    }
-    if(x.url) return x.url;
-    if(x.b64_json) return 'data:image/png;base64,' + x.b64_json;
-    if(x.base64) return x.base64.startsWith('data:image') ? x.base64 : 'data:image/png;base64,' + x.base64;
-    if(x.image) return normalizeImageUrl(x.image);
-    return '';
-  }
-  function extractImageUrl(data){
-    if(!data) return '';
-    if(Array.isArray(data.data) && data.data.length) return normalizeImageUrl(data.data[0]);
-    if(Array.isArray(data.images) && data.images.length) return normalizeImageUrl(data.images[0]);
-    if(Array.isArray(data.output) && data.output.length) return normalizeImageUrl(data.output[0]);
-    if(data.url) return data.url;
-    if(data.image_url) return data.image_url;
-    if(data.image) return normalizeImageUrl(data.image);
-    if(data.b64_json) return 'data:image/png;base64,' + data.b64_json;
-    if(data.base64) return data.base64.startsWith('data:image') ? data.base64 : 'data:image/png;base64,' + data.base64;
-    return '';
-  }
-  function joinUrl(base, path){
-    base = String(base || '').replace(/\/+$/,'');
-    return base + '/' + String(path || '').replace(/^\/+/,'');
-  }
-  window.saveImgApiConfig = saveImgApiConfig;
-  window.getImgApiConfig = getImgApiConfig;
-  window.loadImgModels = async function(){
-    var cfg = getImgApiConfig();
-    if(!cfg.url){ alert('请先填写生图站子链接'); return []; }
-    var headers = {};
-    if(cfg.key) headers.Authorization = 'Bearer ' + cfg.key;
-    var urls = [joinUrl(cfg.url,'/v1/models'), joinUrl(cfg.url,'/models')];
-    var lastErr = null;
-    for(var i=0;i<urls.length;i++){
-      try{
-        var res = await fetch(urls[i], {headers:headers});
-        if(!res.ok) throw new Error('HTTP '+res.status);
-        var data = await res.json();
-        var arr = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : (Array.isArray(data.models) ? data.models : []));
-        var models = arr.map(function(m){ return typeof m === 'string' ? m : (m.id || m.name || m.model || '') }).filter(Boolean);
-        if(models.length){
-          var sel = document.querySelector('#imgModel, [data-img-model], input[name="imgModel"], select[name="imgModel"]');
-          if(sel){
-            if(sel.tagName === 'SELECT'){
-              sel.innerHTML = models.map(function(m){return '<option value="'+String(m).replace(/"/g,'&quot;')+'">'+m+'</option>'}).join('');
-            }else sel.value = models[0];
-          }
-          alert('已拉取 '+models.length+' 个模型');
-          return models;
-        }
-      }catch(e){ lastErr = e; }
-    }
-    alert('拉取模型失败：'+(lastErr && lastErr.message ? lastErr.message : '返回格式不兼容'));
-    return [];
-  };
-  window.callImageApi = async function(prompt, extra){
-    var cfg = getImgApiConfig();
-    if(!cfg.url) throw new Error('请先填写生图站子链接');
-    var finalPrompt = [cfg.positive || '', prompt || ''].filter(Boolean).join(', ');
-    var negative = cfg.negative || '';
-    var headers = {'Content-Type':'application/json'};
-    if(cfg.key) headers.Authorization = 'Bearer ' + cfg.key;
-    var base = cfg.url.replace(/\/+$/,'');
-    var endpoints = [];
-    if(/\/images\/generations$/.test(base) || /\/sdapi\/v1\/txt2img$/.test(base)) endpoints.push(base);
-    endpoints.push(joinUrl(base,'/v1/images/generations'));
-    endpoints.push(joinUrl(base,'/images/generations'));
-    endpoints.push(joinUrl(base,'/sdapi/v1/txt2img'));
-    var bodies = [
-      {model: cfg.model || undefined, prompt: finalPrompt, negative_prompt: negative || undefined, n:1, size:'1024x1024'},
-      {prompt: finalPrompt, negative_prompt: negative, steps: 24, width: 768, height: 1024}
-    ];
-    var lastErr = null;
-    for(var i=0;i<endpoints.length;i++){
-      for(var j=0;j<bodies.length;j++){
-        try{
-          var res = await fetch(endpoints[i], {method:'POST', headers:headers, body:JSON.stringify(Object.assign({}, bodies[j], extra || {}))});
-          var text = await res.text();
-          var data = safeJson(text, null);
-          if(!res.ok){
-            var msg = data && (data.message || data.detail || (data.error && (data.error.message || data.error)));
-            throw new Error(msg || ('HTTP '+res.status));
-          }
-          var img = extractImageUrl(data);
-          if(img) return img;
-          throw new Error('返回里没有图片URL或base64');
-        }catch(e){ lastErr = e; }
-      }
-    }
-    throw new Error(lastErr && lastErr.message ? lastErr.message : '生图失败');
-  };
-  window.generateImageByImgApi = async function(prompt){
-    var url = await window.callImageApi(prompt);
-    return url;
-  };
-})();
-</script>
-
 </body>
 </html>
